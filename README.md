@@ -1,2 +1,3 @@
 # ReactSwift
-🚀  iOS architectural pattern and framework
+
+A description of this package.
