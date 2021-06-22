@@ -8,6 +8,7 @@ open class ComponentBios<Component: IComponent>
 {
     public typealias Action = Component.Action
     public typealias Effect = Component.Effect
+    public typealias Event = Component.Event
     public typealias State = Component.State
 
     public init() {}
@@ -15,6 +16,8 @@ open class ComponentBios<Component: IComponent>
     open func received(action: Action) {}
 
     open func invoked(effect: Effect) {}
+
+    open func invoked(event: Event) {}
 
     open func throwed(_ error: Error) {}
 }

@@ -41,6 +41,13 @@ final class MiddlewareTests: XCTestCase {
         self.middleware = middleware
     }
 
+    func testConfigure() {
+        XCTAssertNotNil(self.middleware._state)
+        XCTAssertNotNil(self.middleware._invokeEffect)
+        XCTAssertNotNil(self.middleware._invokeEvent)
+        XCTAssertNotNil(self.middleware._throwError)
+    }
+
     func testIsLoadingTrueAfterDispatchViewDidLoad() throws {
         // Arrange
         XCTAssertEqual(self.store.state.isLoading, false)
@@ -65,6 +72,22 @@ final class MiddlewareTests: XCTestCase {
 
         // Act
         self.store.dispatch(.viewDidLoad)
+
+        // Assert
+        XCTAssertEqual(result.value, true)
+    }
+
+    func testEventListenerAfterInvoked() throws {
+        final class Value { var value: Bool? }
+
+        // Arrange
+        let result = Value()
+        self.store.listen { [result] _ in result.value = true }
+
+        XCTAssertEqual(result.value, nil)
+
+        // Act
+        self.middleware.invoke(event: .scrollToTop)
 
         // Assert
         XCTAssertEqual(result.value, true)

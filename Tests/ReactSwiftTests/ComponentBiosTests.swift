@@ -9,6 +9,7 @@ final class ComponentBiosTests: XCTestCase {
     private final class MockBios: ComponentBios<MockComponent> {
         var isActionReceived: Bool?
         var isEffectInvoked: Bool?
+        var isEventInvoked: Bool?
         var isErrorThrowed: Bool?
 
         override func received(action: Action) {
@@ -17,6 +18,10 @@ final class ComponentBiosTests: XCTestCase {
 
         override func invoked(effect: Effect) {
             self.isEffectInvoked = true
+        }
+
+        override func invoked(event: Event) {
+            self.isEventInvoked = true
         }
 
         override func throwed(_ error: Error) {
@@ -58,6 +63,17 @@ final class ComponentBiosTests: XCTestCase {
 
         // Assert
         XCTAssertEqual(self.bios.isEffectInvoked, true)
+    }
+
+    func testEventInvoked() throws {
+        // Arrange
+        XCTAssertEqual(self.bios.isEventInvoked, nil)
+
+        // Act
+        self.middleware.invoke(event: .scrollToTop)
+
+        // Assert
+        XCTAssertEqual(self.bios.isEventInvoked, true)
     }
 
     func testThrowedError() throws {

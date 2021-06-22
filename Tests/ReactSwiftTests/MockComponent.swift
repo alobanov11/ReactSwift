@@ -13,6 +13,10 @@ enum MockComponent: IComponent {
         case setLoading(Bool)
     }
 
+    enum Event {
+        case scrollToTop
+    }
+
     struct State: Hashable {
         var isLoading = false
         var optionalIsLoading: Bool?
