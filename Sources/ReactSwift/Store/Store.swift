@@ -170,7 +170,6 @@ private extension Store {
     private func addObservation(_ closure: @escaping (Component.State?, Component.State) -> Void) -> Self {
         closure(nil, self.state)
         self.observers.append { old, new in
-            guard new != old else { return }
             DispatchQueue.main.async { closure(old, new) }
         }
         return self
