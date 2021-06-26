@@ -76,6 +76,25 @@ public extension Store {
     }
 
     @discardableResult
+    func observe(
+        _ sourceKeyPaths: [PartialKeyPath<Component.State>],
+        handler: @escaping (Component.State) -> Void
+    ) -> Self {
+        self.addObservation { old, new in
+            var haveChanges = false
+            sourceKeyPaths.forEach { keyPath in
+                let oldValue = old?[keyPath: keyPath] as? AnyHashable
+                let newValue = new[keyPath: keyPath] as? AnyHashable
+                guard oldValue != newValue else { return }
+                haveChanges = true
+            }
+            guard haveChanges else { return }
+            handler(new)
+        }
+        return self
+    }
+
+    @discardableResult
     func bind<Object: AnyObject, T: Equatable>(
         _ keyPath: KeyPath<Component.State, T>,
         to object: Object,
