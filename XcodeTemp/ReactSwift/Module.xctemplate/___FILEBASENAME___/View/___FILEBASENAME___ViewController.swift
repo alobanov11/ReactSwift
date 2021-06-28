@@ -6,6 +6,9 @@ import ReactSwift
 import UIKit
 
 final class ___VARIABLE_moduleName___ViewController: UIViewController {
+    typealias Module = ___VARIABLE_moduleName___Module
+    typealias State = Module.State
+
     private let store: Store<___VARIABLE_moduleName___Module>
 
     init(store: Store<___VARIABLE_moduleName___Module>) {
