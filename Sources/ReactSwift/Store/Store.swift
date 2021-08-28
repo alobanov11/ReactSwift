@@ -14,8 +14,8 @@ public final class Store<Component: IComponent>
     }
 
     private var observers: [(Component.State?, Component.State) -> Void] = []
-    private var catcher: ((Error) -> Void)?
-    private var listener: ((Component.Event) -> Void)?
+    private var catchers: [(Error) -> Void] = []
+    private var listeners: [(Component.Event) -> Void] = []
     private var isObservingEnabled = true
 
     private let middleware: Middleware<Component>
@@ -44,13 +44,13 @@ public final class Store<Component: IComponent>
 
     @discardableResult
     public func `catch`(_ closure: @escaping (Error) -> Void) -> Self {
-        self.catcher = closure
+		self.catchers.append(closure)
         return self
     }
 
     @discardableResult
     public func listen(_ closure: @escaping (Component.Event) -> Void) -> Self {
-        self.listener = closure
+		self.listeners.append(closure)
         return self
     }
 }
@@ -161,14 +161,14 @@ private extension Store {
     func configure() {
         self.middleware._state = { [unowned self] in self.state }
 
-        self.middleware._throwError = { [unowned self] in
-            self.bios?.throwed($0)
-            self.catcher?($0)
+        self.middleware._throwError = { [unowned self] err in
+            self.bios?.throwed(err)
+			self.catchers.forEach { $0(err) }
         }
 
-        self.middleware._invokeEvent = { [unowned self] in
-            self.bios?.invoked(event: $0)
-            self.listener?($0)
+        self.middleware._invokeEvent = { [unowned self] event in
+            self.bios?.invoked(event: event)
+			self.listeners.forEach { $0(event) }
         }
 
         self.middleware._invokeEffect = { [unowned self] effect, trigger in
