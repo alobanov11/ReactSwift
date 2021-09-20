@@ -159,19 +159,27 @@ public extension Store {
 
 private extension Store {
     func configure() {
-        self.middleware._state = { [unowned self] in self.state }
+		let initialState = self.state
 
-        self.middleware._throwError = { [unowned self] err in
+        self.middleware._state = { [weak self] in
+			guard let self = self else { return initialState }
+			return self.state
+		}
+
+        self.middleware._throwError = { [weak self] err in
+			guard let self = self else { return }
             self.bios?.throwed(err)
 			self.catchers.forEach { $0(err) }
         }
 
-        self.middleware._invokeEvent = { [unowned self] event in
+        self.middleware._invokeEvent = { [weak self] event in
+			guard let self = self else { return }
             self.bios?.invoked(event: event)
 			self.listeners.forEach { $0(event) }
         }
 
-        self.middleware._invokeEffect = { [unowned self] effect, trigger in
+        self.middleware._invokeEffect = { [weak self] effect, trigger in
+			guard let self = self else { return }
             self.bios?.invoked(effect: effect)
             self.storage.mutate {
                 self.isObservingEnabled = trigger
