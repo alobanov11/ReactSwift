@@ -6,7 +6,7 @@ import XCTest
 @testable import ReactSwift
 
 final class MiddlewareTests: XCTestCase {
-    private final class MockMiddleware: Middleware<MockComponent> {
+    private final class MockMiddleware: Middleware<MockModule> {
         var isViewDidLoadError = false
         override func handle(action: Action) {
             switch action {
@@ -20,7 +20,7 @@ final class MiddlewareTests: XCTestCase {
         }
     }
 
-    private final class MockReducer: Reducer<MockComponent> {
+    private final class MockReducer: Reducer<MockModule> {
         override func reduce(state: State, effect: Effect) -> State {
             var newState = state
             switch effect {
@@ -31,7 +31,7 @@ final class MiddlewareTests: XCTestCase {
         }
     }
 
-    private var store: Store<MockComponent>!
+    private var store: Store<MockModule>!
     private var middleware: MockMiddleware!
 
     override func setUp() {

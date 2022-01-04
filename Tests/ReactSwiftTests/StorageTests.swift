@@ -6,7 +6,7 @@ import XCTest
 @testable import ReactSwift
 
 final class StorageTests: XCTestCase {
-    private var storage: Storage<MockComponent.State>!
+    private var storage: Storage<MockModule.State>!
 
     override func setUp() {
         super.setUp()

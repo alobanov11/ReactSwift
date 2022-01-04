@@ -4,7 +4,7 @@
 
 @testable import ReactSwift
 
-enum MockComponent: IComponent {
+enum MockModule: IModule {
     enum Action {
         case viewDidLoad
     }
@@ -21,4 +21,8 @@ enum MockComponent: IComponent {
         var isLoading = false
         var optionalIsLoading: Bool?
     }
+
+	static func build(with parameters: EmptyModuleItem = .init()) -> WeakRoutableModule<MockModule> {
+		.init(module: .init(viewController: <#T##UIViewController#>, context: <#T##(EmptyModuleItem) -> Void#>))
+	}
 }

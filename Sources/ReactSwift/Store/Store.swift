@@ -4,31 +4,34 @@
 
 import Foundation
 
-public final class Store<Component: IComponent>
+public final class Store<Module: IModule>
 {
-    public private(set) var state: Component.State {
+    public private(set) var state: Module.State {
         didSet {
             guard self.isObservingEnabled else { return }
             self.observers.forEach { $0(oldValue, self.state) }
         }
     }
 
-    private var observers: [(Component.State?, Component.State) -> Void] = []
+    private var observers: [(Module.State?, Module.State) -> Void] = []
     private var catchers: [(Error) -> Void] = []
-    private var listeners: [(Component.Event) -> Void] = []
+    private var listeners: [(Module.Event) -> Void] = []
     private var isObservingEnabled = true
 
-    private let middleware: Middleware<Component>
-    private let reducer: Reducer<Component>
-    private let storage: Storage<Component.State>
-    private let bios: ComponentBios<Component>?
+	private let router: Router<Module>?
+    private let middleware: Middleware<Module>
+    private let reducer: Reducer<Module>
+    private let storage: Storage<Module.State>
+    private let bios: ModuleBios<Module>?
 
     public init(
-        middleware: Middleware<Component>,
-        reducer: Reducer<Component>,
-        initialState: Component.State,
-        bios: ComponentBios<Component>? = nil
+		router: Router<Module>? = nil,
+        middleware: Middleware<Module>,
+        reducer: Reducer<Module>,
+        initialState: Module.State,
+        bios: ModuleBios<Module>? = nil
     ) {
+		self.router = router
         self.middleware = middleware
         self.reducer = reducer
         self.bios = bios
@@ -37,7 +40,7 @@ public final class Store<Component: IComponent>
         self.configure()
     }
 
-    public func dispatch(_ action: Component.Action) {
+    public func dispatch(_ action: Module.Action) {
         self.bios?.received(action: action)
         self.middleware.handle(action: action)
     }
@@ -49,7 +52,7 @@ public final class Store<Component: IComponent>
     }
 
     @discardableResult
-    public func listen(_ closure: @escaping (Component.Event) -> Void) -> Self {
+    public func listen(_ closure: @escaping (Module.Event) -> Void) -> Self {
 		self.listeners.append(closure)
         return self
     }
@@ -59,14 +62,14 @@ public final class Store<Component: IComponent>
 
 public extension Store {
     @discardableResult
-    func observe(_ closure: @escaping (Component.State) -> Void) -> Self {
+    func observe(_ closure: @escaping (Module.State) -> Void) -> Self {
         self.addObservation { _, new in
             closure(new)
         }
     }
 
     @discardableResult
-    func observe<T: Equatable>(_ keyPath: KeyPath<Component.State, T>, closure: @escaping (T) -> Void) -> Self {
+    func observe<T: Equatable>(_ keyPath: KeyPath<Module.State, T>, closure: @escaping (T) -> Void) -> Self {
         self.addObservation { old, new in
             let oldValue = old?[keyPath: keyPath]
             let newValue = new[keyPath: keyPath]
@@ -77,8 +80,8 @@ public extension Store {
 
     @discardableResult
     func observe(
-        _ sourceKeyPaths: [PartialKeyPath<Component.State>],
-        handler: @escaping (Component.State) -> Void
+        _ sourceKeyPaths: [PartialKeyPath<Module.State>],
+        handler: @escaping (Module.State) -> Void
     ) -> Self {
         self.addObservation { old, new in
             var haveChanges = false
@@ -96,7 +99,7 @@ public extension Store {
 
     @discardableResult
     func bind<Object: AnyObject, T: Equatable>(
-        _ keyPath: KeyPath<Component.State, T>,
+        _ keyPath: KeyPath<Module.State, T>,
         to object: Object,
         _ objectKeyPath: ReferenceWritableKeyPath<Object, T>
     ) -> Self {
@@ -110,7 +113,7 @@ public extension Store {
 
     @discardableResult
     func bind<Object: AnyObject, T: Equatable>(
-        _ keyPath: KeyPath<Component.State, T>,
+        _ keyPath: KeyPath<Module.State, T>,
         to object: Object,
         _ objectKeyPath: ReferenceWritableKeyPath<Object, Optional<T>>
     ) -> Self {
@@ -124,7 +127,7 @@ public extension Store {
 
     @discardableResult
     func bind<Object: AnyObject, T, V: Equatable>(
-        _ keyPath: KeyPath<Component.State, V>,
+        _ keyPath: KeyPath<Module.State, V>,
         to object: Object,
         _ objectKeyPath: ReferenceWritableKeyPath<Object, T>,
         map: @escaping (V) -> T
@@ -140,7 +143,7 @@ public extension Store {
 
     @discardableResult
     func bind<Object: AnyObject, T, V: Equatable>(
-        _ keyPath: KeyPath<Component.State, Optional<V>>,
+        _ keyPath: KeyPath<Module.State, Optional<V>>,
         to object: Object,
         _ objectKeyPath: ReferenceWritableKeyPath<Object, T>,
         map: @escaping (V?) -> T
@@ -160,6 +163,17 @@ public extension Store {
 private extension Store {
     func configure() {
 		let initialState = self.state
+
+		self.router?._state = { [weak self] in
+			guard let self = self else { return initialState }
+			return self.state
+		}
+
+		self.router?._invokeInput = { [weak self] input in
+			guard let self = self else { return }
+			self.bios?.invoked(input: input)
+			self.middleware.handle(input: input)
+		}
 
         self.middleware._state = { [weak self] in
 			guard let self = self else { return initialState }
@@ -187,6 +201,12 @@ private extension Store {
             }
         }
 
+		self.middleware._invokeOutput = { [weak self] output in
+			guard let self = self else { return }
+			self.bios?.invoked(output: output)
+			self.router?.handle(output: output)
+		}
+
         self.storage.subscribe(self) {
             $0.state = $2
             $0.isObservingEnabled = true
@@ -194,7 +214,7 @@ private extension Store {
     }
 
     @discardableResult
-    private func addObservation(_ closure: @escaping (Component.State?, Component.State) -> Void) -> Self {
+    private func addObservation(_ closure: @escaping (Module.State?, Module.State) -> Void) -> Self {
         closure(nil, self.state)
         self.observers.append { old, new in
             DispatchQueue.main.async { closure(old, new) }

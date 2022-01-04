@@ -4,13 +4,13 @@
 
 import ReactSwift
 
-protocol ___VARIABLE_moduleName___ModuleOutput: AnyObject {
+protocol I___VARIABLE_moduleName___Output: AnyObject {
 }
 
-protocol ___VARIABLE_moduleName___ModuleInput: AnyObject {
+protocol I___VARIABLE_moduleName___Input: AnyObject {
 }
 
-enum ___VARIABLE_moduleName___Module: IComponent {
+enum ___VARIABLE_moduleName___Module: IModule {
     enum Action {
         case viewDidLoad
     }
@@ -23,7 +23,7 @@ enum ___VARIABLE_moduleName___Module: IComponent {
         var isLoading = false
     }
 
-    static func build() -> (___VARIABLE_moduleName___ViewController, ___VARIABLE_moduleName___ModuleOutput, ___VARIABLE_moduleName___ModuleInput) {
+    static func build() -> (___VARIABLE_moduleName___ViewController, I___VARIABLE_moduleName___Output, I___VARIABLE_moduleName___Input) {
         let middleware = ___VARIABLE_moduleName___Middleware()
         let reducer = ___VARIABLE_moduleName___Reducer()
         let bios = ___VARIABLE_moduleName___Bios()

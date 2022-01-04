@@ -2,10 +2,10 @@
 //  Created by Антон Лобанов on 30.03.2021.
 //
 
-open class Reducer<Component: IComponent>
+open class Reducer<Module: IModule>
 {
-    public typealias State = Component.State
-    public typealias Effect = Component.Effect
+    public typealias State = Module.State
+    public typealias Effect = Module.Effect
 
     public init() {}
 

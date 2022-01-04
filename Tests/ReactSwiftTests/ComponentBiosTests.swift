@@ -5,8 +5,8 @@
 import XCTest
 @testable import ReactSwift
 
-final class ComponentBiosTests: XCTestCase {
-    private final class MockBios: ComponentBios<MockComponent> {
+final class ModuleBiosTests: XCTestCase {
+    private final class MockBios: ModuleBios<MockModule> {
         var isActionReceived: Bool?
         var isEffectInvoked: Bool?
         var isEventInvoked: Bool?
@@ -29,15 +29,15 @@ final class ComponentBiosTests: XCTestCase {
         }
     }
 
-    private var store: Store<MockComponent>!
-    private var middleware: Middleware<MockComponent>!
+    private var store: Store<MockModule>!
+    private var middleware: Middleware<MockModule>!
     private var bios: MockBios!
 
 
     override func setUp() {
         super.setUp()
         let bios = MockBios()
-        let middleware = Middleware<MockComponent>()
+        let middleware = Middleware<MockModule>()
         self.store = .init(middleware: middleware, reducer: .init(), initialState: .init(), bios: bios)
         self.middleware = middleware
         self.bios = bios

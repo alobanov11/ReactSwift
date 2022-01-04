@@ -4,7 +4,7 @@
 
 import ReactSwift
 
-final class ___VARIABLE_moduleName___Middleware: Middleware<___VARIABLE_moduleName___Module>, ___VARIABLE_moduleName___ModuleOutput {
+final class ___VARIABLE_moduleName___Middleware: Middleware<___VARIABLE_moduleName___Module>, I___VARIABLE_moduleName___Output {
     override func handle(action: Action) {
         switch action {
         case .viewDidLoad: 
@@ -13,4 +13,4 @@ final class ___VARIABLE_moduleName___Middleware: Middleware<___VARIABLE_moduleNa
     }
 }
 
-extension ___VARIABLE_moduleName___Middleware: ___VARIABLE_moduleName___ModuleInput {}
+extension ___VARIABLE_moduleName___Middleware: I___VARIABLE_moduleName___Input {}

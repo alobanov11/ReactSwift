@@ -4,7 +4,7 @@
 
 import ReactSwift
 
-final class ___VARIABLE_moduleName___Bios: ComponentBios<___VARIABLE_moduleName___Module> {
+final class ___VARIABLE_moduleName___Bios: ModuleBios<___VARIABLE_moduleName___Module> {
     override func received(action: Action) {
         print(action)
     }
