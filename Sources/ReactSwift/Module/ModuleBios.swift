@@ -13,6 +13,12 @@ open class ModuleBios<Module: IModule>
 	public typealias Input = Module.Input
 	public typealias Output = Module.Output
 
+	public var state: State {
+		_state()
+	}
+
+	var _state: (() -> State)!
+
     public init() {}
 
     open func received(action: Action) {}

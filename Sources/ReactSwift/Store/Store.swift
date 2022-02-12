@@ -164,6 +164,11 @@ private extension Store {
     func configure() {
 		let initialState = self.state
 
+		self.bios?._state = { [weak self] in
+			guard let self = self else { return initialState }
+			return self.state
+		}
+
 		self.router?._state = { [weak self] in
 			guard let self = self else { return initialState }
 			return self.state
