@@ -13,6 +13,8 @@ public final class Store<Module: IModule>
         }
     }
 
+	public private(set) var log = StoreLog<Module>()
+
     private var observers: [(Module.State?, Module.State) -> Void] = []
     private var catchers: [(Error) -> Void] = []
     private var listeners: [(Module.Event) -> Void] = []
@@ -41,6 +43,7 @@ public final class Store<Module: IModule>
     }
 
     public func dispatch(_ action: Module.Action) {
+		self.log.actions.append(action)
         self.bios?.received(action: action)
         self.middleware.handle(action: action)
     }
@@ -176,6 +179,7 @@ private extension Store {
 
 		self.router?._invokeInput = { [weak self] input in
 			guard let self = self else { return }
+			self.log.inputs.append(input)
 			self.bios?.invoked(input: input)
 			self.middleware.handle(input: input)
 		}
@@ -187,18 +191,21 @@ private extension Store {
 
         self.middleware._throwError = { [weak self] err in
 			guard let self = self else { return }
+			self.log.errors.append(err.localizedDescription)
             self.bios?.throwed(err)
 			self.catchers.forEach { $0(err) }
         }
 
         self.middleware._invokeEvent = { [weak self] event in
 			guard let self = self else { return }
+			self.log.events.append(event)
             self.bios?.invoked(event: event)
 			self.listeners.forEach { $0(event) }
         }
 
         self.middleware._invokeEffect = { [weak self] effect, trigger in
 			guard let self = self else { return }
+			self.log.effects.append(effect)
             self.bios?.invoked(effect: effect)
             self.storage.mutate {
                 self.isObservingEnabled = trigger
@@ -208,6 +215,7 @@ private extension Store {
 
 		self.middleware._invokeOutput = { [weak self] output in
 			guard let self = self else { return }
+			self.log.outputs.append(output)
 			self.bios?.invoked(output: output)
 			self.router?.handle(output: output)
 		}

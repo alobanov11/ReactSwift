@@ -9,10 +9,10 @@ public struct EmptyModuleItem: Hashable {
 }
 
 public protocol IModule {
-    associatedtype Action
-    associatedtype Effect
-    associatedtype Event = EmptyModuleItem
-	associatedtype Input = EmptyModuleItem
-	associatedtype Output = EmptyModuleItem
+	associatedtype Action: Hashable
+    associatedtype Effect: Hashable
+    associatedtype Event: Hashable = EmptyModuleItem
+	associatedtype Input: Hashable = EmptyModuleItem
+	associatedtype Output: Hashable = EmptyModuleItem
     associatedtype State: Hashable
 }
