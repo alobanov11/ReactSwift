@@ -4,15 +4,15 @@
 
 import UIKit
 
-public struct EmptyModuleItem: Hashable {
+public struct EmptyModuleItem: Equatable {
 	public init() {}
 }
 
 public protocol IModule {
-	associatedtype Action: Hashable
-    associatedtype Effect: Hashable
-    associatedtype Event: Hashable = EmptyModuleItem
-	associatedtype Input: Hashable = EmptyModuleItem
-	associatedtype Output: Hashable = EmptyModuleItem
-    associatedtype State: Hashable
+	associatedtype Action: Equatable
+    associatedtype Effect: Equatable
+    associatedtype Event: Equatable = EmptyModuleItem
+	associatedtype Input: Equatable = EmptyModuleItem
+	associatedtype Output: Equatable = EmptyModuleItem
+    associatedtype State: Equatable
 }

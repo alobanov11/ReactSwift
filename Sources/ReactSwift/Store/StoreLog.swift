@@ -4,7 +4,7 @@
 
 import Foundation
 
-public struct StoreLog<Module: IModule>: Hashable
+public struct StoreLog<Module: IModule>: Equatable
 {
 	public var actions: [Module.Action]
 	public var effects: [Module.Effect]
