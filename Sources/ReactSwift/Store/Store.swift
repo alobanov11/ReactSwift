@@ -15,12 +15,10 @@ open class Store<Module: IModule>: ViewStore<Module> {
 	}
 
 	@discardableResult
-	public func invoke(effect: Effect, trigger: Bool = false) -> Self {
+	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
 		self.storage.mutate { state in
-			var newState = state
-			self.reduce(&newState, effect: effect)
 			self.isObservingEnabled = trigger
-			state = newState
+			self.reduce(&$0, effect: effect)
 		}
 		return self
 	}
