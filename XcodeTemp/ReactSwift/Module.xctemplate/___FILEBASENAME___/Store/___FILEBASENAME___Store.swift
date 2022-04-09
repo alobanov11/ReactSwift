@@ -8,8 +8,4 @@ final class ___VARIABLE_moduleName___Store: Store<___VARIABLE_moduleName___Modul
 	override func dispatch(_ action: Action) {
 		//
 	}
-
-	override func reduce(state: State, effect: Effect) -> State {
-		return state
-	}
 }

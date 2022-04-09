@@ -5,12 +5,8 @@
 import ReactSwift
 
 struct ___VARIABLE_moduleName___Module: IModule {
-    enum Action {
+	enum Action: Equatable {
         case viewDidLoad
-    }
-
-    enum Effect {
-        case setLoading(Bool)
     }
 
     struct State: Hashable {

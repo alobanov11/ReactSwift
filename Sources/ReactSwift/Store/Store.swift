@@ -6,23 +6,8 @@ import Foundation
 
 open class Store<Module: IModule>: ViewStore<Module> {
 	public typealias Action = Module.Action
-	public typealias Effect = Module.Effect
 	public typealias Event = Module.Event
 	public typealias State = Module.State
-
-	open func reduce(state: State, effect: Effect) -> State {
-		print("Should override in subclass")
-		return state
-	}
-
-	@discardableResult
-	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
-		self.storage.mutate {
-			self.isObservingEnabled = trigger
-			$0 = self.reduce(state: $0, effect: effect)
-		}
-		return self
-	}
 
 	@discardableResult
 	public func invoke(event: Event) -> Self {
@@ -33,6 +18,14 @@ open class Store<Module: IModule>: ViewStore<Module> {
 	@discardableResult
 	public func `throw`(_ error: Error) -> Self {
 		self.catchers.forEach { $0(error) }
+		return self
+	}
+
+	public func mutate(_ closure: (inout State) -> Void, trigger: Bool = true) -> Self {
+		self.storage.mutate {
+			self.isObservingEnabled = trigger
+			closure(&$0)
+		}
 		return self
 	}
 }
