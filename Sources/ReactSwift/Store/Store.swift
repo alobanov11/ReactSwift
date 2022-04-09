@@ -21,6 +21,7 @@ open class Store<Module: IModule>: ViewStore<Module> {
 		return self
 	}
 
+	@discardableResult
 	public func mutate(_ closure: (inout State) -> Void, trigger: Bool = true) -> Self {
 		self.storage.mutate {
 			self.isObservingEnabled = trigger
