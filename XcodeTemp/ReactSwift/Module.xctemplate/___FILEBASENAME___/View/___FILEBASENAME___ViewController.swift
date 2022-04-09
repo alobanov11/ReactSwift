@@ -8,9 +8,9 @@ import UIKit
 final class ___VARIABLE_moduleName___ViewController: UIViewController {
     typealias Module = ___VARIABLE_moduleName___Module
 
-    private let store: Store<Module>
+    private let store: ViewStore<Module>
 
-    init(store: Store<Module>) {
+    init(store: ViewStore<Module>) {
         self.store = store
         super.init()
     }

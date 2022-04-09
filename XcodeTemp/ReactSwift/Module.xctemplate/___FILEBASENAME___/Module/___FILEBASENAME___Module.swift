@@ -4,13 +4,7 @@
 
 import ReactSwift
 
-protocol I___VARIABLE_moduleName___Output: AnyObject {
-}
-
-protocol I___VARIABLE_moduleName___Input: AnyObject {
-}
-
-enum ___VARIABLE_moduleName___Module: IModule {
+struct ___VARIABLE_moduleName___Module: IModule {
     enum Action {
         case viewDidLoad
     }
@@ -23,20 +17,13 @@ enum ___VARIABLE_moduleName___Module: IModule {
         var isLoading = false
     }
 
-    static func build() -> (___VARIABLE_moduleName___ViewController, I___VARIABLE_moduleName___Output, I___VARIABLE_moduleName___Input) {
-        let middleware = ___VARIABLE_moduleName___Middleware()
-        let reducer = ___VARIABLE_moduleName___Reducer()
-        let bios = ___VARIABLE_moduleName___Bios()
-        
-        let store = Store(
-            middleware: middleware,
-            reducer: reducer,
-            initialState: .init(),
-            bios: bios
-        )
+    func build() -> ___VARIABLE_moduleName___ViewController {
+        let store = ___VARIABLE_moduleName___Store(
+			initialState: .init()
+		)
         
         let view = ___VARIABLE_moduleName___ViewController(store: store)
         
-        return (view, middleware, middleware)
+        return view
     }
 }

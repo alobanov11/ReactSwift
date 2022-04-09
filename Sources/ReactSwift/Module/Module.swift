@@ -10,9 +10,7 @@ public struct EmptyModuleItem: Equatable {
 
 public protocol IModule {
 	associatedtype Action: Equatable
-    associatedtype Effect: Equatable
-    associatedtype Event: Equatable = EmptyModuleItem
-	associatedtype Input: Equatable = EmptyModuleItem
-	associatedtype Output: Equatable = EmptyModuleItem
-    associatedtype State: Equatable
+	associatedtype Effect: Equatable
+	associatedtype Event: Equatable = EmptyModuleItem
+	associatedtype State: Equatable
 }
