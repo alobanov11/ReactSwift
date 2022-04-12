@@ -9,7 +9,7 @@ final class ___VARIABLE_moduleName___Store: Store<___VARIABLE_moduleName___Modul
 		//
 	}
 
-	override func reduce(_ state: inout State, effect: Effect) {
+	override class func reduce(_ state: inout State, effect: Effect) {
 		//
 	}
 }
