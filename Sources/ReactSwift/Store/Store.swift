@@ -10,7 +10,7 @@ open class Store<Module: IModule>: ViewStore<Module> {
 	public typealias Event = Module.Event
 	public typealias State = Module.State
 
-	open func reduce(_ state: inout State, effect: Effect) {
+	open class func reduce(_ state: inout State, effect: Effect) {
 		print("Override in subclass")
 	}
 
@@ -18,7 +18,7 @@ open class Store<Module: IModule>: ViewStore<Module> {
 	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
 		self.storage.mutate {
 			self.isObservingEnabled = trigger
-			self.reduce(&$0, effect: effect)
+			Self.reduce(&$0, effect: effect)
 		}
 		return self
 	}
