@@ -9,6 +9,10 @@ struct ___VARIABLE_moduleName___Module: IModule {
         case viewDidLoad
     }
 
+	enum Effect: Equatable {
+		case setLoading(Bool)
+	}
+
     struct State: Hashable {
         var isLoading = false
     }
