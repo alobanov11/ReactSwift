@@ -47,7 +47,7 @@ final class AuthStore: Store<AuthModule> {
 		}
 	}
 
-	/// Statis function which can change State by an effect
+	/// Static function which can change State by an effect
 	override class func reduce(_ state: inout State, effect: Effect) {
 		switch effect {
 		case let .setLoading(value):
@@ -75,19 +75,19 @@ final class AuthViewController: UIViewController {
     /// These methods can help you to make View reactive but without using complex instruments like Rx
     override func viewDidLoad() {
         super.viewDidLoad()
-		self.store
-			.bind(\.isSubmitEnabled, to: self, \AuthViewController.isSubmitEnabled)
-			.observe(\.code) { [weak self] code in self?.setCode(code) }
-			.listen { [weak self] event in
-				switch event {
-				case let .setActive(value):
-					self?.isActive = value
+        self.store
+		    .bind(\.isSubmitEnabled, to: self, \AuthViewController.isSubmitEnabled)
+		    .observe(\.code) { [weak self] code in self?.setCode(code) }
+		    .listen { [weak self] event in
+			    switch event {
+			    case let .setActive(value):
+				    self?.isActive = value
 				}
-			}
-			.catch { [weak self] error in
-				self?.showError(error)
-			}
-			.dispatch(.viewDidLoad)
+		    }
+		    .catch { [weak self] error in
+		        self?.showError(error)
+		    }
+		    .dispatch(.viewDidLoad)
     }
 }
 ```
