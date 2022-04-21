@@ -41,7 +41,7 @@ Then you need to create your own Store:
 final class AuthStore: Store<AuthModule> {
     /// The view calls this function 
     override func dispatch(_ action: Action) {
-    switch action {
+        switch action {
         case .viewDidLoad:
             self.invoke(effect: .setLoading(true))
         }
