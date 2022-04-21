@@ -21,17 +21,17 @@ First you need to define a module to conform this protocol. It could be a UIView
 
 ```swift
 public protocol IModule {
-	/// All action which View can have (e.g. viewDidLoad / didTapOnSubmitButton)
-	associatedtype Action: Equatable
+    /// All action which View can have (e.g. viewDidLoad / didTapOnSubmitButton)
+    associatedtype Action: Equatable
 	
-	/// Effect how we want to change state (e.g. setLoading(Bool), setData([String])) 
-	associatedtype Effect: Equatable
+    /// Effect how we want to change state (e.g. setLoading(Bool), setData([String])) 
+    associatedtype Effect: Equatable
 	
-	/// Helper to call some functional on a View directly without changing state
-	associatedtype Event: Equatable = EmptyModuleItem
+    /// Helper to call some functional on a View directly without changing state
+    associatedtype Event: Equatable = EmptyModuleItem
 	
-	/// State of a View
-	associatedtype State: Equatable
+    /// State of a View
+    associatedtype State: Equatable
 }
 ```
 
@@ -39,21 +39,21 @@ Then you need to create your own Store:
 
 ```swift
 final class AuthStore: Store<AuthModule> {
-	/// The view calls this function 
-	override func dispatch(_ action: Action) {
-		switch action {
-		case .viewDidLoad:
-			self.invoke(effect: .setLoading(true))
-		}
-	}
+    /// The view calls this function 
+    override func dispatch(_ action: Action) {
+    switch action {
+        case .viewDidLoad:
+            self.invoke(effect: .setLoading(true))
+        }
+    }
 
-	/// Static function which can change State by an effect
-	override class func reduce(_ state: inout State, effect: Effect) {
-		switch effect {
-		case let .setLoading(value):
-			state.isLoading = value
-		}
-	}
+    /// Static function which can change State by an effect
+    override class func reduce(_ state: inout State, effect: Effect) {
+        switch effect {
+        case let .setLoading(value):
+            state.isLoading = value
+        }
+    }
 }
 ```
 
