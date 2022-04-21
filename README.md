@@ -76,18 +76,18 @@ final class AuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.store
-		    .bind(\.isSubmitEnabled, to: self, \AuthViewController.isSubmitEnabled)
-		    .observe(\.code) { [weak self] code in self?.setCode(code) }
-		    .listen { [weak self] event in
-			    switch event {
-			    case let .setActive(value):
-				    self?.isActive = value
-				}
-		    }
-		    .catch { [weak self] error in
-		        self?.showError(error)
-		    }
-		    .dispatch(.viewDidLoad)
+            .bind(\.isSubmitEnabled, to: self, \AuthViewController.isSubmitEnabled)
+            .observe(\.code) { [weak self] code in self?.setCode(code) }
+            .listen { [weak self] event in
+                switch event {
+                case let .setActive(value):
+                    self?.isActive = value
+                }
+            }
+            .catch { [weak self] error in
+                self?.showError(error)
+            }
+            .dispatch(.viewDidLoad)
     }
 }
 ```
