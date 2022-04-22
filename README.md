@@ -1,6 +1,6 @@
-# ReactSwift
+# StoreSwift
 
-ReactSwift is a lightweight library which allows you to make undirection data flow architecture.
+StoreSwift is a lightweight library which allows you to make undirection data flow architecture.
 
 
 
@@ -97,7 +97,7 @@ As I said, it looks pretty easy.)
 
 ## Requirements
 
-ReactSwift supports **iOS 9 and up**, and can be compiled with **Swift 4.2 and up**.
+StoreSwift supports **iOS 9 and up**, and can be compiled with **Swift 4.2 and up**.
 
 
 
@@ -105,10 +105,10 @@ ReactSwift supports **iOS 9 and up**, and can be compiled with **Swift 4.2 and u
 
 ### Swift Package Manager
 
-The ReactSwift package URL is:
+The StoreSwift package URL is:
 
 ```
-`https://github.com/alobanov11/ReactSwift`
+`https://github.com/alobanov11/StoreSwift`
 ```
 
 
