@@ -10,7 +10,7 @@ let currentPath = fileManager.currentDirectoryPath
 let templatePath = "\(homeDirectoryForCurrentUser)/Library/Developer/Xcode/Templates/"
 
 // let projectDir = "Project Templates/"
-let moduleDir = "ReactSwift/"
+let moduleDir = "StoreSwift/"
 
 // let sourceProjectPath = "\(currentPath)/\(projectDir)"
 let sourceModulePath = "\(currentPath)/\(moduleDir)"
