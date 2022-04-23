@@ -2,7 +2,7 @@
 //  Created by ___FULLUSERNAME___ on ___DATE___
 //
 
-import ReactSwift
+import StoreSwift
 import UIKit
 
 final class ___VARIABLE_moduleName___ViewController: UIViewController {

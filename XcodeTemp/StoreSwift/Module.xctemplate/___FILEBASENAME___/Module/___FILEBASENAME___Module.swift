@@ -2,7 +2,7 @@
 //  Created by ___FULLUSERNAME___ on ___DATE___
 //
 
-import ReactSwift
+import StoreSwift
 
 struct ___VARIABLE_moduleName___Module: IModule {
 	enum Action: Equatable {
