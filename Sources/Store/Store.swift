@@ -31,7 +31,13 @@ open class Store<Module: IModule>: ViewStore<Module> {
 
 	@discardableResult
 	public func `throw`(_ error: Error) -> Self {
-		self.catchers.forEach { $0(error) }
+		self.catchers.forEach { $0(.error(error)) }
+		return self
+	}
+
+	@discardableResult
+	public func `throw`(_ error: String) -> Self {
+		self.catchers.forEach { $0(.text(error)) }
 		return self
 	}
 }

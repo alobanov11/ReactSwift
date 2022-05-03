@@ -13,7 +13,7 @@ open class ViewStore<Module: IModule> {
 	}
 
 	var observers: [(Module.State?, Module.State) -> Void] = []
-	var catchers: [(Error) -> Void] = []
+	var catchers: [(StoreError) -> Void] = []
 	var listeners: [(Module.Event) -> Void] = []
 	var isObservingEnabled = true
 
@@ -34,7 +34,7 @@ open class ViewStore<Module: IModule> {
 	}
 
 	@discardableResult
-	public func `catch`(_ closure: @escaping (Error) -> Void) -> Self {
+	public func `catch`(_ closure: @escaping (StoreError) -> Void) -> Self {
 		self.catchers.append(closure)
 		return self
 	}
