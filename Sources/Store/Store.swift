@@ -4,11 +4,11 @@
 
 import Foundation
 
-open class Store<Module: IModule>: ViewStore<Module> {
-	public typealias Action = Module.Action
-	public typealias Effect = Module.Effect
-	public typealias Event = Module.Event
-	public typealias State = Module.State
+open class Store<M: Module>: ViewStore<M> {
+	public typealias Action = M.Action
+	public typealias Effect = M.Effect
+	public typealias Event = M.Event
+	public typealias State = M.State
 
 	open class func reduce(_ state: inout State, effect: Effect) {
 		print("Override in subclass")

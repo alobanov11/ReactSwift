@@ -4,13 +4,13 @@
 
 import UIKit
 
-public struct EmptyModuleItem: Equatable {
+public struct NoEvent: Equatable {
 	public init() {}
 }
 
-public protocol IModule {
+public protocol Module {
 	associatedtype Action: Equatable
 	associatedtype Effect: Equatable
-	associatedtype Event: Equatable = EmptyModuleItem
+	associatedtype Event: Equatable = NoEvent
 	associatedtype State: Equatable
 }

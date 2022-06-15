@@ -4,22 +4,22 @@
 
 import Foundation
 
-open class ViewStore<Module: IModule> {
-	public private(set) var state: Module.State {
+open class ViewStore<M: Module> {
+	public private(set) var state: M.State {
 		didSet {
 			guard self.isObservingEnabled else { return }
 			self.observers.forEach { $0(oldValue, self.state) }
 		}
 	}
 
-	var observers: [(Module.State?, Module.State) -> Void] = []
+	var observers: [(M.State?, M.State) -> Void] = []
 	var catchers: [(StoreError) -> Void] = []
-	var listeners: [(Module.Event) -> Void] = []
+	var listeners: [(M.Event) -> Void] = []
 	var isObservingEnabled = true
 
-	let storage: Storage<Module.State>
+	let storage: Storage<M.State>
 
-	public init(initialState: Module.State) {
+	public init(initialState: M.State) {
 		self.state = initialState
 		self.storage = .init(initialState)
 
@@ -29,7 +29,7 @@ open class ViewStore<Module: IModule> {
 		}
 	}
 
-	open func dispatch(_ action: Module.Action) {
+	open func dispatch(_ action: M.Action) {
 		print("Must override in subclass")
 	}
 
@@ -40,7 +40,7 @@ open class ViewStore<Module: IModule> {
 	}
 
 	@discardableResult
-	public func listen(_ closure: @escaping (Module.Event) -> Void) -> Self {
+	public func listen(_ closure: @escaping (M.Event) -> Void) -> Self {
 		self.listeners.append(closure)
 		return self
 	}
@@ -50,14 +50,14 @@ open class ViewStore<Module: IModule> {
 
 public extension ViewStore {
 	@discardableResult
-	func observe(_ closure: @escaping (Module.State) -> Void) -> Self {
+	func observe(_ closure: @escaping (M.State) -> Void) -> Self {
 		self.addObservation { _, new in
 			closure(new)
 		}
 	}
 
 	@discardableResult
-	func observe<T: Equatable>(_ keyPath: KeyPath<Module.State, T>, closure: @escaping (T) -> Void) -> Self {
+	func observe<T: Equatable>(_ keyPath: KeyPath<M.State, T>, closure: @escaping (T) -> Void) -> Self {
 		self.addObservation { old, new in
 			let oldValue = old?[keyPath: keyPath]
 			let newValue = new[keyPath: keyPath]
@@ -68,8 +68,8 @@ public extension ViewStore {
 
 	@discardableResult
 	func observe(
-		_ sourceKeyPaths: [PartialKeyPath<Module.State>],
-		handler: @escaping (Module.State) -> Void
+		_ sourceKeyPaths: [PartialKeyPath<M.State>],
+		handler: @escaping (M.State) -> Void
 	) -> Self {
 		self.addObservation { old, new in
 			var haveChanges = false
@@ -87,7 +87,7 @@ public extension ViewStore {
 
 	@discardableResult
 	func bind<Object: AnyObject, T: Equatable>(
-		_ keyPath: KeyPath<Module.State, T>,
+		_ keyPath: KeyPath<M.State, T>,
 		to object: Object,
 		_ objectKeyPath: ReferenceWritableKeyPath<Object, T>
 	) -> Self {
@@ -101,7 +101,7 @@ public extension ViewStore {
 
 	@discardableResult
 	func bind<Object: AnyObject, T: Equatable>(
-		_ keyPath: KeyPath<Module.State, T>,
+		_ keyPath: KeyPath<M.State, T>,
 		to object: Object,
 		_ objectKeyPath: ReferenceWritableKeyPath<Object, Optional<T>>
 	) -> Self {
@@ -115,7 +115,7 @@ public extension ViewStore {
 
 	@discardableResult
 	func bind<Object: AnyObject, T, V: Equatable>(
-		_ keyPath: KeyPath<Module.State, V>,
+		_ keyPath: KeyPath<M.State, V>,
 		to object: Object,
 		_ objectKeyPath: ReferenceWritableKeyPath<Object, T>,
 		map: @escaping (V) -> T
@@ -131,7 +131,7 @@ public extension ViewStore {
 
 	@discardableResult
 	func bind<Object: AnyObject, T, V: Equatable>(
-		_ keyPath: KeyPath<Module.State, Optional<V>>,
+		_ keyPath: KeyPath<M.State, Optional<V>>,
 		to object: Object,
 		_ objectKeyPath: ReferenceWritableKeyPath<Object, T>,
 		map: @escaping (V?) -> T
@@ -150,7 +150,7 @@ public extension ViewStore {
 
 private extension ViewStore {
 	@discardableResult
-	private func addObservation(_ closure: @escaping (Module.State?, Module.State) -> Void) -> Self {
+	private func addObservation(_ closure: @escaping (M.State?, M.State) -> Void) -> Self {
 		closure(nil, self.state)
 		self.observers.append { old, new in
 			DispatchQueue.main.async { closure(old, new) }
