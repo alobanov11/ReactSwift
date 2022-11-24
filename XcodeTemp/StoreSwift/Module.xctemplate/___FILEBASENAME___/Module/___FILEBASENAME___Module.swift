@@ -4,7 +4,7 @@
 
 import StoreSwift
 
-struct ___VARIABLE_moduleName___Module: IModule {
+struct ___VARIABLE_moduleName___Module: Module {
 	enum Action: Equatable {
         case viewDidLoad
     }

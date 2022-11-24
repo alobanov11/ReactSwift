@@ -5,6 +5,7 @@
 import Foundation
 
 open class Store<M: Module>: ViewStore<M> {
+	public typealias Module = M
 	public typealias Action = M.Action
 	public typealias Effect = M.Effect
 	public typealias Event = M.Event
