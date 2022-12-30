@@ -4,8 +4,11 @@
 
 import Foundation
 
-open class ViewStore<M: Module> {
+open class ViewStore<M: Module>: ObservableObject {
 	public private(set) var state: M.State {
+		willSet {
+			self.objectWillChange.send()
+		}
 		didSet {
 			guard self.isObservingEnabled else { return }
 			self.observers.forEach { $0(oldValue, self.state) }
