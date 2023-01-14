@@ -17,28 +17,27 @@ open class Store<M: Module>: ViewStore<M> {
 
 	@discardableResult
 	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
-		self.storage.mutate {
-			self.isObservingEnabled = trigger
-			Self.reduce(&$0, effect: effect)
-		}
+		self.needsToCallObservers = trigger
+		Self.reduce(&self.state, effect: effect)
+		self.needsToCallObservers = true
 		return self
 	}
 
 	@discardableResult
 	public func invoke(event: Event) -> Self {
-		self.listeners.forEach { $0(event) }
+		self._event.send(event)
 		return self
 	}
 
 	@discardableResult
 	public func `throw`(_ error: Error) -> Self {
-		self.catchers.forEach { $0(.error(error)) }
+		self._error.send(.error(error))
 		return self
 	}
 
 	@discardableResult
 	public func `throw`(_ error: String) -> Self {
-		self.catchers.forEach { $0(.text(error)) }
+		self._error.send(.text(error))
 		return self
 	}
 }

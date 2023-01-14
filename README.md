@@ -20,7 +20,7 @@ There is no perfect an architecture which could be fitted to any Application. Ea
 First you need to define a module to conform this protocol. It could be a UIViewController module or a separeted UIView part.
 
 ```swift
-public protocol IModule {
+public protocol Module {
     /// All action which View can have (e.g. viewDidLoad / didTapOnSubmitButton)
     associatedtype Action: Equatable
 	
@@ -28,7 +28,7 @@ public protocol IModule {
     associatedtype Effect: Equatable
 	
     /// Helper to call some functional on a View directly without changing state
-    associatedtype Event: Equatable = EmptyModuleItem
+    associatedtype Event: Equatable = NoEvent
 	
     /// State of a View
     associatedtype State: Equatable
@@ -97,7 +97,7 @@ As I said, it looks pretty easy.)
 
 ## Requirements
 
-StoreSwift supports **iOS 9 and up**, and can be compiled with **Swift 4.2 and up**.
+StoreSwift supports **iOS 13 and up**, and can be compiled with **Swift 5.5 and up**.
 
 
 
