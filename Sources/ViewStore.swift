@@ -42,12 +42,12 @@ open class ViewStore<M: Module>: ObservableObject {
 
 	@discardableResult
 	public func `catch`(_ closure: @escaping (StoreError) -> Void) -> Self {
-		self.store(self._error.receive(on: DispatchQueue.main).sink(receiveValue: closure))
+		self.store(self._error.sink(receiveValue: closure))
 	}
 
 	@discardableResult
 	public func listen(_ closure: @escaping (M.Event) -> Void) -> Self {
-		self.store(self._event.receive(on: DispatchQueue.main).sink(receiveValue: closure))
+		self.store(self._event.sink(receiveValue: closure))
 	}
 
 	@discardableResult
