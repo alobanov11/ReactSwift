@@ -32,7 +32,7 @@ open class ViewStore<M: Module>: ObservableObject {
 	private var observers: [(M.State?, M.State) -> Void] = []
 	private var cancellables: [AnyCancellable] = []
 
-	public init(initialState: M.State) {
+	nonisolated public init(initialState: M.State) {
 		self.state = initialState
 	}
 
