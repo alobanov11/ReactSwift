@@ -11,14 +11,19 @@ open class Store<M: Module>: ViewStore<M> {
 	public typealias Event = M.Event
 	public typealias State = M.State
 
-	open class func reduce(_ state: inout State, effect: Effect) {
+	open class func reduce(_ state: inout State, effect: Effect) throws {
 		print("Override in subclass")
 	}
 
 	@discardableResult
 	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
 		self.needsToCallObservers = trigger
-		Self.reduce(&self.state, effect: effect)
+		do {
+			try Self.reduce(&self.state, effect: effect)
+		}
+		catch {
+			self.throw(error)
+		}
 		self.needsToCallObservers = true
 		return self
 	}
