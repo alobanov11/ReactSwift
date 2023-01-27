@@ -50,7 +50,12 @@ open class Store<M: Module>: ViewStore<M> {
 		return self
 	}
 
-	private func log(_ values: [Any?]) {
-		StoreLogger.log(values)
+	private func log(
+		_ values: [Any?],
+		_ file: StaticString = #file,
+		_ function: StaticString = #function,
+		_ line: UInt = #line
+	) {
+		StoreLogger.log(values, file, function, line)
 	}
 }
