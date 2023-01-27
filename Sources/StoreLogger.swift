@@ -7,7 +7,7 @@ import Foundation
 public enum StoreLogger {
 	public static var isEnabled = true
 
-	public static var handler: ([Any?]) -> Void = { values in
+	public static var handler: ([Any?], StaticString, StaticString, UInt) -> Void = { values, _, _, _ in
 		#if DEBUG
 		print(String(repeating: "_", count: 85))
 		for value in values {
@@ -19,8 +19,13 @@ public enum StoreLogger {
 		#endif
 	}
 
-	static func log(_ values: [Any?]) {
+	static func log(
+		_ values: [Any?],
+		_ file: StaticString = #file,
+		_ function: StaticString = #function,
+		_ line: UInt = #line
+	) {
 		guard self.isEnabled else { return }
-		self.handler(values)
+		self.handler(values, file, function, line)
 	}
 }
