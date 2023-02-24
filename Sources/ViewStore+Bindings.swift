@@ -6,13 +6,17 @@ import SwiftUI
 import Foundation
 
 public extension ViewStore {
-	func bind<T>(_ keyPath: WritableKeyPath<M.State, T>, by action: M.Action) -> Binding<T> {
+	func binding<T>(_ keyPath: WritableKeyPath<M.State, T>, by action: M.Action) -> Binding<T> {
 		Binding<T> {
 			return self.state[keyPath: keyPath]
 		} set: { newValue in
 			self.state[keyPath: keyPath] = newValue
 			return self.dispatch(action)
 		}
+	}
+
+	func action(_ action: M.Action) -> () -> Void {
+		{ self.dispatch(action) }
 	}
 }
 
