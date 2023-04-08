@@ -37,6 +37,7 @@ open class ViewStore<M: Module>: ObservableObject {
 	}
 
 	open func dispatch(_ action: M.Action) {
+        log([action])
 		print("Must override in subclass")
 	}
 
@@ -62,4 +63,8 @@ open class ViewStore<M: Module>: ObservableObject {
 		self.observers.append(closure)
 		return self
 	}
+
+    func log(_ values: [Any?]) {
+        StoreLogger.log(values, String(describing: M.self))
+    }
 }

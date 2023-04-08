@@ -49,8 +49,4 @@ open class Store<M: Module>: ViewStore<M> {
 		self._error.send(.text(error))
 		return self
 	}
-
-	private func log(_ values: [Any?]) {
-		StoreLogger.log(values, String(describing: M.self))
-	}
 }
