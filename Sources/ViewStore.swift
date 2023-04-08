@@ -37,7 +37,6 @@ open class ViewStore<M: Module>: ObservableObject {
 	}
 
 	open func dispatch(_ action: M.Action) {
-        log([action])
 		print("Must override in subclass")
 	}
 
