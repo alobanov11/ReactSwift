@@ -5,7 +5,7 @@
 import Combine
 import Foundation
 
-@MainActor
+@dynamicMemberLookup
 open class ViewStore<M: Module>: ObservableObject {
 	public internal(set) var state: M.State {
 		willSet {
@@ -32,7 +32,7 @@ open class ViewStore<M: Module>: ObservableObject {
 	private var observers: [(M.State?, M.State) -> Void] = []
 	private var cancellables: [AnyCancellable] = []
 
-	nonisolated public init(initialState: M.State) {
+    public init(initialState: M.State) {
 		self.state = initialState
 	}
 
@@ -55,6 +55,10 @@ open class ViewStore<M: Module>: ObservableObject {
 		self.cancellables.append(cancellable)
 		return self
 	}
+
+    public subscript<Value>(dynamicMember keyPath: KeyPath<M.State, Value>) -> Value {
+      self.state[keyPath: keyPath]
+    }
 
 	@discardableResult
 	func addObservation(_ closure: @escaping (M.State?, M.State) -> Void) -> Self {

@@ -17,6 +17,7 @@ open class Store<M: Module>: ViewStore<M> {
 
 	@discardableResult
 	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
+        defer { self.needsToCallObservers = true }
 		self.log([effect, "trigger: \(trigger)"])
 		self.needsToCallObservers = trigger
 		do {
@@ -25,7 +26,6 @@ open class Store<M: Module>: ViewStore<M> {
 		catch {
 			self.throw(error)
 		}
-		self.needsToCallObservers = true
 		return self
 	}
 
