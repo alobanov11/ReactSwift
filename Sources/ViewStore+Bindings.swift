@@ -11,12 +11,12 @@ public extension ViewStore {
 			return self.state[keyPath: keyPath]
 		} set: { newValue in
 			self.state[keyPath: keyPath] = newValue
-			return self.dispatch(action)
+			return self.send(action)
 		}
 	}
 
 	func action(_ action: M.Action) -> () -> Void {
-		{ self.dispatch(action) }
+		{ self.send(action) }
 	}
 }
 

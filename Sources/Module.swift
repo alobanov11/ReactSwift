@@ -4,13 +4,11 @@
 
 import UIKit
 
-public struct NoEvent: Equatable {
-	public init() {}
-}
-
 public protocol Module {
-	associatedtype Action: Equatable
-	associatedtype Effect: Equatable
-	associatedtype Event: Equatable = NoEvent
-	associatedtype State: Equatable
+
+    associatedtype State: Equatable
+    associatedtype Action
+    associatedtype Mutation
+	associatedtype Feedback = Never
+	associatedtype Output = Never
 }

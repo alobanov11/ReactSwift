@@ -5,29 +5,27 @@
 import Combine
 import Foundation
 
+@MainActor
 @dynamicMemberLookup
 open class ViewStore<M: Module>: ObservableObject {
-	public internal(set) var state: M.State {
+
+    public internal(set) var state: M.State {
 		willSet {
 			self.objectWillChange.send()
 			if self.needsToCallObservers {
 				self.observers.forEach { $0(self.state, newValue) }
+                self.needsToCallObservers = false
 			}
 		}
 	}
 
-	public var error: AnyPublisher<StoreError, Never> {
-		self._error.eraseToAnyPublisher()
-	}
-
-	public var event: AnyPublisher<M.Event, Never> {
-		self._event.eraseToAnyPublisher()
+	public var output: AnyPublisher<M.Output, Never> {
+		self.outputSubject.eraseToAnyPublisher()
 	}
 
 	var needsToCallObservers = true
 
-	let _error = PassthroughSubject<StoreError, Never>()
-	let _event = PassthroughSubject<M.Event, Never>()
+	let outputSubject = PassthroughSubject<M.Output, Never>()
 
 	private var observers: [(M.State?, M.State) -> Void] = []
 	private var cancellables: [AnyCancellable] = []
@@ -36,24 +34,14 @@ open class ViewStore<M: Module>: ObservableObject {
 		self.state = initialState
 	}
 
-	open func dispatch(_ action: M.Action) {
+	public func send(_ action: M.Action) {
 		print("Must override in subclass")
 	}
 
 	@discardableResult
-	public func `catch`(_ closure: @escaping (StoreError) -> Void) -> Self {
-		self.store(self._error.sink(receiveValue: closure))
-	}
-
-	@discardableResult
-	public func listen(_ closure: @escaping (M.Event) -> Void) -> Self {
-		self.store(self._event.sink(receiveValue: closure))
-	}
-
-	@discardableResult
-	public func store(_ cancellable: AnyCancellable) -> Self {
-		self.cancellables.append(cancellable)
-		return self
+	public func listen(_ closure: @escaping (M.Output) -> Void) -> Self {
+        self.outputSubject.sink(receiveValue: closure).store(in: &self.cancellables)
+        return self
 	}
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<M.State, Value>) -> Value {
@@ -66,8 +54,4 @@ open class ViewStore<M: Module>: ObservableObject {
 		self.observers.append(closure)
 		return self
 	}
-
-    func log(_ values: [Any?]) {
-        StoreLogger.log(values, String(describing: M.self))
-    }
 }
