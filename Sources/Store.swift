@@ -23,8 +23,11 @@ open class Store<M: Module>: ViewStore<M> {
     }
 
     public override func send(_ action: Action) {
-        let task = Task { await self.dispatch(.action(action)) }
-        self.tasks.append(task)
+        self.dispatch(.action(action))
+    }
+
+    public func send(_ feedback: Feedback) {
+        self.dispatch(.feedback(feedback))
     }
 
     open func transform(_ intent: Intent<Action, Feedback>) -> Effect {
@@ -39,10 +42,12 @@ open class Store<M: Module>: ViewStore<M> {
 
 private extension Store {
 
-    func dispatch(_ intent: Intent<Action, Feedback>) async {
-        guard Task.isCancelled == false else { return }
-        let effect = self.transform(intent)
-        await self.apply(effect)
+    func dispatch(_ intent: Intent<Action, Feedback>) {
+        self.tasks.append(Task {
+            guard Task.isCancelled == false else { return }
+            let effect = self.transform(intent)
+            await self.apply(effect)
+        })
     }
 
     func apply(_ effect: Effect) async {
