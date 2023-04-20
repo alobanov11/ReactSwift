@@ -8,4 +8,5 @@ public enum Intent<Action, Feedback>: Sendable where Action: Sendable, Feedback:
 
     case action(Action)
     case feedback(Feedback)
+    indirect case error(Intent, Error)
 }

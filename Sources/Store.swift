@@ -7,12 +7,14 @@ import Foundation
 open class Store<M: Module>: ViewStore<M> {
 
     public typealias Module = M
-    public typealias State = M.State
 	public typealias Action = M.Action
+    public typealias Effect = M.Effect
     public typealias Feedback = M.Feedback
-    public typealias Mutation = M.Mutation
 	public typealias Output = M.Output
-    public typealias Effect = StoreSwift.Effect<Feedback, Output, Mutation>
+    public typealias State = M.State
+
+    public typealias Intent = StoreSwift.Intent<Action, Feedback>
+    public typealias EffectTask = StoreSwift.EffectTask<Feedback, Output, Effect>
 
     private var tasks: [Task<Void, Never>] = []
 
@@ -22,6 +24,15 @@ open class Store<M: Module>: ViewStore<M> {
         }
     }
 
+    open func transform(_ intent: Intent) -> EffectTask {
+        print("Override in subclass")
+        return .none
+    }
+
+    open class func reduce(_ state: inout State, effect: Effect) throws {
+        print("Override in subclass")
+    }
+
     public override func send(_ action: Action) {
         self.dispatch(.action(action))
     }
@@ -29,48 +40,47 @@ open class Store<M: Module>: ViewStore<M> {
     public func send(_ feedback: Feedback) {
         self.dispatch(.feedback(feedback))
     }
-
-    open func transform(_ intent: Intent<Action, Feedback>) -> Effect {
-        print("Override in subclass")
-        return .none
-    }
-
-	open class func mutate(_ state: inout State, mutation: Mutation) {
-		print("Override in subclass")
-	}
 }
 
 private extension Store {
 
-    func dispatch(_ intent: Intent<Action, Feedback>) {
+    func dispatch(_ intent: Intent) {
         self.tasks.append(Task {
             guard Task.isCancelled == false else { return }
-            let effect = self.transform(intent)
-            await self.apply(effect)
+            let effectTask = self.transform(intent)
+            do {
+                try await self.perform(effectTask)
+            }
+            catch {
+                self.dispatch(.error(intent, error))
+            }
         })
     }
 
-    func apply(_ effect: Effect) async {
-        switch effect {
+    func perform(_ effectTask: EffectTask) async throws {
+        switch effectTask {
         case .none:
             break
+
+        case let .error(error):
+            self.errorSubject.send(error)
 
         case let .output(output):
             self.outputSubject.send(output)
 
         case let .run(operation):
             await operation { [weak self] feedback in
-                guard !Task.isCancelled else { return }
+                guard Task.isCancelled == false else { return }
                 await self?.dispatch(.feedback(feedback))
             }
 
-        case let .mutate(mutation, trigger):
+        case let .effect(effect, trigger):
             self.needsToCallObservers = trigger
-            Self.mutate(&self.state, mutation: mutation)
+            try Self.reduce(&self.state, effect: effect)
 
         case let .combine(effects):
             for effect in effects {
-                await self.apply(effect)
+                try await self.perform(effect)
             }
         }
     }

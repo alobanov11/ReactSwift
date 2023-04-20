@@ -23,9 +23,14 @@ open class ViewStore<M: Module>: ObservableObject {
 		self.outputSubject.eraseToAnyPublisher()
 	}
 
+    public var error: AnyPublisher<Error, Never> {
+        self.errorSubject.eraseToAnyPublisher()
+    }
+
 	var needsToCallObservers = true
 
 	let outputSubject = PassthroughSubject<M.Output, Never>()
+    let errorSubject = PassthroughSubject<Error, Never>()
 
 	private var observers: [(M.State?, M.State) -> Void] = []
 	private var cancellables: [AnyCancellable] = []

@@ -6,7 +6,8 @@ import SwiftUI
 import Foundation
 
 public extension ViewStore {
-	func binding<T>(_ keyPath: WritableKeyPath<M.State, T>, by action: M.Action) -> Binding<T> {
+
+    func binding<T>(_ keyPath: WritableKeyPath<M.State, T>, by action: M.Action) -> Binding<T> {
 		Binding<T> {
 			return self.state[keyPath: keyPath]
 		} set: { newValue in
@@ -21,7 +22,8 @@ public extension ViewStore {
 }
 
 public extension ViewStore {
-	@discardableResult
+
+    @discardableResult
 	func observe(_ closure: @escaping (M.State) -> Void) -> Self {
 		self.addObservation { _, new in
 			closure(new)

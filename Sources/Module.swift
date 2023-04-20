@@ -6,9 +6,9 @@ import UIKit
 
 public protocol Module {
 
-    associatedtype State: Equatable
     associatedtype Action
-    associatedtype Mutation
+    associatedtype Effect
 	associatedtype Feedback = Never
 	associatedtype Output = Never
+    associatedtype State: Equatable
 }
