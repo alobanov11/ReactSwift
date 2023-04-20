@@ -69,7 +69,7 @@ private extension Store {
             self.outputSubject.send(output)
 
         case let .run(operation):
-            await operation { [weak self] feedback in
+            try await operation { [weak self] feedback in
                 guard Task.isCancelled == false else { return }
                 await self?.dispatch(.feedback(feedback))
             }
