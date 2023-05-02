@@ -8,9 +8,9 @@ final class SomeFeatureTests: XCTestCase {
         let middleware = SomeFeature.middleware
         let state = SomeFeature.State()
         var env = SomeFeature.Enviroment(fetchSome: { return 0 })
-        let effectTask = middleware(state, &env, .viewDidLoad)
-        let intents = await effectTask.unwrap(&env)
-        XCTAssertEqual(intents, [
+        let effectTask = middleware(state, &env, .action(.viewDidLoad))
+        let events = await effectTask.unwrap(&env)
+        XCTAssertEqual(events, [
             .effect(.setLoading(true)),
             .effect(.setNumber(0)),
             .effect(.setLoading(false)),

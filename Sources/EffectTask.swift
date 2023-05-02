@@ -2,18 +2,18 @@ import Foundation
 
 public enum EffectTask<Feature: StoreSwift.Feature> {
 
-    public enum Intent {
+    public enum Event {
 
         case output(Feature.Output)
         case effect(Feature.Effect)
 
-        indirect case combine([Intent])
+        indirect case combine([Event])
     }
 
     public typealias Operation = (inout Feature.Enviroment) async -> EffectTask
 
     case none
-    case intent(Intent)
+    case event(Event)
     case run(Operation)
 
     indirect case combine([EffectTask])
@@ -22,39 +22,39 @@ public enum EffectTask<Feature: StoreSwift.Feature> {
 public extension EffectTask {
 
     static func output(_ output: Feature.Output) -> EffectTask {
-        .intent(.output(output))
+        .event(.output(output))
     }
 
     static func effect(_ effect: Feature.Effect) -> EffectTask {
-        .intent(.effect(effect))
+        .event(.effect(effect))
     }
 
     static func combine(_ effects: EffectTask...) -> Self {
         .combine(effects)
     }
 
-    func unwrap(_ env: inout Feature.Enviroment) async -> [Intent] {
+    func unwrap(_ env: inout Feature.Enviroment) async -> [Event] {
         switch self {
         case .none:
             return []
 
-        case let .intent(intent):
-            return [intent]
+        case let .event(event):
+            return [event]
 
         case let .run(operation):
             let effect = await operation(&env)
-            let intents = await effect.unwrap(&env)
-            return intents
+            let events = await effect.unwrap(&env)
+            return events
 
         case let .combine(effects):
-            var intents: [Intent] = []
+            var events: [Event] = []
             for effect in effects {
-                let subIntents = await effect.unwrap(&env)
-                intents.append(contentsOf: subIntents)
+                let subEvents = await effect.unwrap(&env)
+                events.append(contentsOf: subEvents)
             }
-            return intents
+            return events
         }
     }
 }
 
-extension EffectTask.Intent: Equatable where Feature.Output: Equatable, Feature.Effect: Equatable {}
+extension EffectTask.Event: Equatable where Feature.Output: Equatable, Feature.Effect: Equatable {}

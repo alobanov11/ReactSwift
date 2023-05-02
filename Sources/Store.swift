@@ -9,7 +9,7 @@ import SwiftUI
 @dynamicMemberLookup
 public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 
-    public typealias Middleware = (_: Feature.State, _: inout Feature.Enviroment, _: Feature.Action) -> EffectTask<Feature>
+    public typealias Middleware = (_: Feature.State, _: inout Feature.Enviroment, _: Intent<Feature>) -> EffectTask<Feature>
     public typealias Reducer = (_: inout Feature.State, _: Feature.Effect) -> Void
 
     public internal(set) var state: Feature.State {
@@ -25,6 +25,7 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 	}
 
     private var tasks: [Task<Void, Never>] = []
+    private var cancellables: [AnyCancellable] = []
     private var enviroment: Feature.Enviroment
 
 	private let outputSubject = PassthroughSubject<Feature.Output, Never>()
@@ -34,6 +35,7 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     public init(
         initialState: Feature.State,
         enviroment: Feature.Enviroment,
+        feedbacks: [AnyPublisher<Feature.Feedback, Never>] = [],
         middleware: @escaping Middleware,
         reducer: @escaping Reducer
     ) {
@@ -41,6 +43,9 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
         self.enviroment = enviroment
         self.middleware = middleware
         self.reducer = reducer
+        self.cancellables.append(contentsOf: feedbacks.map {
+            $0.sink(receiveValue: { [weak self] in self?.dispatch(.feedback($0)) })
+        })
 	}
 
     deinit {
@@ -50,8 +55,7 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     }
 
 	public func send(_ action: Feature.Action) {
-        let task = self.middleware(self.state, &self.enviroment, action)
-        self.perform(task)
+        self.dispatch(.action(action))
 	}
 
     public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
@@ -74,13 +78,18 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 
 private extension Store {
 
+    func dispatch(_ intent: Intent<Feature>) {
+        let task = self.middleware(self.state, &self.enviroment, intent)
+        self.perform(task)
+    }
+
     func perform(_ task: EffectTask<Feature>) {
         switch task {
         case .none:
             break
 
-        case let .intent(intent):
-            self.perform(intent)
+        case let .event(event):
+            self.perform(event)
 
         case let .run(operation):
             self.tasks.append(Task {
@@ -98,17 +107,17 @@ private extension Store {
         }
     }
 
-    func perform(_ intent: EffectTask<Feature>.Intent) {
-        switch intent {
+    func perform(_ event: EffectTask<Feature>.Event) {
+        switch event {
         case let .output(output):
             self.outputSubject.send(output)
 
         case let .effect(effect):
             self.reducer(&self.state, effect)
 
-        case let .combine(intents):
-            for intent in intents {
-                self.perform(intent)
+        case let .combine(events):
+            for event in events {
+                self.perform(event)
             }
         }
     }

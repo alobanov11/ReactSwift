@@ -36,9 +36,9 @@ enum SomeFeature: Feature {
 extension SomeFeature {
 
     static var middleware: Store<SomeFeature>.Middleware {
-        { state, env, action in
-            switch action {
-            case .viewDidLoad:
+        { state, env, intent in
+            switch intent {
+            case .action(.viewDidLoad):
                 env.someValue = "first call"
                 return .combine(
                     .effect(.setLoading(true)),
