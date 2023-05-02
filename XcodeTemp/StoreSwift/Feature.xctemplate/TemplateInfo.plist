@@ -5,7 +5,7 @@
 	<key>Kind</key>
 	<string>Xcode.IDEFoundation.TextSubstitutionFileTemplateKind</string>
 	<key>Description</key>
-	<string>Module</string>
+	<string>Feature</string>
 	<key>SortOrder</key>
 	<string>1</string>
 	<key>DefaultCompletionName</key>
@@ -32,7 +32,7 @@
 		</dict>
 		<dict>
 			<key>Default</key>
-			<string>___VARIABLE_moduleName___</string>
+			<string>___VARIABLE_featureName___</string>
 			<key>Identifier</key>
 			<string>productName</string>
 			<key>Type</key>
