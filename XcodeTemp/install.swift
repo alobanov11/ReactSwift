@@ -10,13 +10,13 @@ let currentPath = fileManager.currentDirectoryPath
 let templatePath = "\(homeDirectoryForCurrentUser)/Library/Developer/Xcode/Templates/"
 
 // let projectDir = "Project Templates/"
-let moduleDir = "StoreSwift/"
+let featureDir = "StoreSwift/"
 
 // let sourceProjectPath = "\(currentPath)/\(projectDir)"
-let sourceModulePath = "\(currentPath)/\(moduleDir)"
+let sourceFeaturePath = "\(currentPath)/\(featureDir)"
 
 // let projectTemplatePath = "\(templatePath)/\(projectDir)"
-let moduleTemplatePath = "\(templatePath)/\(moduleDir)"
+let featureTemplatePath = "\(templatePath)/\(featureDir)"
 
 func makeDir(path: String) {
     try? fileManager.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
@@ -29,9 +29,9 @@ func moveTemplate(fromPath: String, toPath: String) throws {
 }
 
 do {
-    printInConsole("Install Module templates at \(moduleTemplatePath)")
-    makeDir(path: moduleTemplatePath)
-    try moveTemplate(fromPath: sourceModulePath, toPath: moduleTemplatePath)
+    printInConsole("Install Feature templates at \(featureTemplatePath)")
+    makeDir(path: featureTemplatePath)
+    try moveTemplate(fromPath: sourceFeaturePath, toPath: featureTemplatePath)
 
     printInConsole("All templates have been successfully installed.")
 } catch let error as NSError {

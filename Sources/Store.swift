@@ -1,22 +1,47 @@
 //
-//  Created by Антон Лобанов on 09.04.2022.
+//  Created by Антон Лобанов on 25.03.2021.
 //
 
-import Foundation
+import Combine
+import SwiftUI
 
-open class Store<M: Module>: ViewStore<M> {
+@MainActor
+@dynamicMemberLookup
+public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 
-    public typealias Module = M
-	public typealias Action = M.Action
-    public typealias Effect = M.Effect
-    public typealias Feedback = M.Feedback
-	public typealias Output = M.Output
-    public typealias State = M.State
+    public typealias Middleware = (_: Feature.State, _: inout Feature.Enviroment, _: Feature.Action) -> EffectTask<Feature>
+    public typealias Reducer = (_: inout Feature.State, _: Feature.Effect) -> Void
 
-    public typealias Intent = StoreSwift.Intent<Action, Feedback>
-    public typealias EffectTask = StoreSwift.EffectTask<Feedback, Output, Effect>
+    public internal(set) var state: Feature.State {
+		willSet {
+            if self.state != newValue {
+                self.objectWillChange.send()
+            }
+		}
+	}
+
+    public var output: AnyPublisher<Feature.Output, Never> {
+		self.outputSubject.eraseToAnyPublisher()
+	}
 
     private var tasks: [Task<Void, Never>] = []
+    private var enviroment: Feature.Enviroment
+
+	private let outputSubject = PassthroughSubject<Feature.Output, Never>()
+    private let middleware: Middleware
+    private let reducer: Reducer
+
+    public init(
+        initialState: Feature.State,
+        enviroment: Feature.Enviroment,
+        middleware: @escaping Middleware,
+        reducer: @escaping Reducer
+    ) {
+		self.state = initialState
+        self.enviroment = enviroment
+        self.middleware = middleware
+        self.reducer = reducer
+	}
 
     deinit {
         for task in self.tasks {
@@ -24,63 +49,66 @@ open class Store<M: Module>: ViewStore<M> {
         }
     }
 
-    open func transform(_ intent: Intent) -> EffectTask {
-        print("Override in subclass")
-        return .none
+	public func send(_ action: Feature.Action) {
+        let task = self.middleware(self.state, &self.enviroment, action)
+        self.perform(task)
+	}
+
+    public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
+        Binding<T> {
+            return self.state[keyPath: keyPath]
+        } set: { newValue in
+            self.state[keyPath: keyPath] = newValue
+            return self.send(action)
+        }
     }
 
-    open class func reduce(_ state: inout State, effect: Effect) throws {
-        print("Override in subclass")
+    public func action(_ action: Feature.Action) -> () -> Void {
+        { self.send(action) }
     }
 
-    public override func send(_ action: Action) {
-        self.dispatch(.action(action))
-    }
-
-    public func send(_ feedback: Feedback) {
-        self.dispatch(.feedback(feedback))
+    public subscript<Value>(dynamicMember keyPath: KeyPath<Feature.State, Value>) -> Value {
+      self.state[keyPath: keyPath]
     }
 }
 
 private extension Store {
 
-    func dispatch(_ intent: Intent) {
-        self.tasks.append(Task {
-            guard Task.isCancelled == false else { return }
-            let effectTask = self.transform(intent)
-            do {
-                try await self.perform(effectTask)
-            }
-            catch {
-                self.dispatch(.error(intent, error))
-            }
-        })
-    }
-
-    func perform(_ effectTask: EffectTask) async throws {
-        switch effectTask {
+    func perform(_ task: EffectTask<Feature>) {
+        switch task {
         case .none:
             break
 
-        case let .error(error):
-            self.errorSubject.send(error)
+        case let .intent(intent):
+            self.perform(intent)
 
+        case let .run(operation):
+            self.tasks.append(Task {
+                guard Task.isCancelled == false else { return }
+                var env = self.enviroment
+                let task = await operation(&env)
+                self.enviroment = env
+                self.perform(task)
+            })
+
+        case let .combine(tasks):
+            for task in tasks {
+                self.perform(task)
+            }
+        }
+    }
+
+    func perform(_ intent: EffectTask<Feature>.Intent) {
+        switch intent {
         case let .output(output):
             self.outputSubject.send(output)
 
-        case let .run(operation):
-            try await operation { [weak self] feedback in
-                guard Task.isCancelled == false else { return }
-                await self?.dispatch(.feedback(feedback))
-            }
+        case let .effect(effect):
+            self.reducer(&self.state, effect)
 
-        case let .effect(effect, trigger):
-            self.needsToCallObservers = trigger
-            try Self.reduce(&self.state, effect: effect)
-
-        case let .combine(effects):
-            for effect in effects {
-                try await self.perform(effect)
+        case let .combine(intents):
+            for intent in intents {
+                self.perform(intent)
             }
         }
     }

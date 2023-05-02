@@ -1,27 +1,60 @@
-//
-//  Created by Антон Лобанов on 19.04.2023.
-//
-
 import Foundation
 
-public enum EffectTask<Feedback, Output, Effect> {
-    public typealias Operation = (@Sendable @escaping (Feedback) async -> Void) async throws -> Void
+public enum EffectTask<Feature: StoreSwift.Feature> {
+
+    public enum Intent {
+
+        case output(Feature.Output)
+        case effect(Feature.Effect)
+
+        indirect case combine([Intent])
+    }
+
+    public typealias Operation = (inout Feature.Enviroment) async -> EffectTask
 
     case none
-    case error(Error)
-    case output(Output)
+    case intent(Intent)
     case run(Operation)
-    case effect(Effect, Bool)
+
     indirect case combine([EffectTask])
 }
 
 public extension EffectTask {
 
-    static func effect(_ effect: Effect, trigger: Bool = true) -> Self {
-        .effect(effect, trigger)
+    static func output(_ output: Feature.Output) -> EffectTask {
+        .intent(.output(output))
+    }
+
+    static func effect(_ effect: Feature.Effect) -> EffectTask {
+        .intent(.effect(effect))
     }
 
     static func combine(_ effects: EffectTask...) -> Self {
         .combine(effects)
     }
+
+    func unwrap(_ env: inout Feature.Enviroment) async -> [Intent] {
+        switch self {
+        case .none:
+            return []
+
+        case let .intent(intent):
+            return [intent]
+
+        case let .run(operation):
+            let effect = await operation(&env)
+            let intents = await effect.unwrap(&env)
+            return intents
+
+        case let .combine(effects):
+            var intents: [Intent] = []
+            for effect in effects {
+                let subIntents = await effect.unwrap(&env)
+                intents.append(contentsOf: subIntents)
+            }
+            return intents
+        }
+    }
 }
+
+extension EffectTask.Intent: Equatable where Feature.Output: Equatable, Feature.Effect: Equatable {}

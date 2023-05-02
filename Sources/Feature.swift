@@ -1,14 +1,10 @@
-//
-//  Created by Антон Лобанов on 25.03.2021.
-//
-
 import UIKit
 
-public protocol Module {
+public protocol Feature {
 
     associatedtype Action
     associatedtype Effect
-	associatedtype Feedback = Never
+    associatedtype Enviroment
 	associatedtype Output = Never
     associatedtype State: Equatable
 }

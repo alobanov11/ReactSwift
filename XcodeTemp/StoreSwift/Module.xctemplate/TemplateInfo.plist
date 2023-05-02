@@ -20,9 +20,9 @@
 			<key>Description</key>
 			<string>The name of the feature to create</string>
 			<key>Identifier</key>
-			<string>moduleName</string>
+			<string>featureName</string>
 			<key>Name</key>
-			<string>New Module Name:</string>
+			<string>New Feature Name:</string>
 			<key>NotPersisted</key>
 			<true/>
 			<key>Required</key>
