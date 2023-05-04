@@ -35,7 +35,7 @@ enum SomeFeature: Feature {
 
 extension SomeFeature {
 
-    static var middleware: Store<SomeFeature>.Middleware {
+    static var middleware: SomeFeature.Middleware {
         { state, env, intent in
             switch intent {
             case .action(.viewDidLoad):
@@ -57,7 +57,7 @@ extension SomeFeature {
         }
     }
 
-    static var reducer: Store<SomeFeature>.Reducer {
+    static var reducer: SomeFeature.Reducer {
         { state, effect in
             switch effect {
             case let .setLoading(value):

@@ -9,9 +9,6 @@ import SwiftUI
 @dynamicMemberLookup
 public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 
-    public typealias Middleware = (_: Feature.State, _: inout Feature.Enviroment, _: Intent<Feature>) -> EffectTask<Feature>
-    public typealias Reducer = (_: inout Feature.State, _: Feature.Effect) -> Void
-
     public internal(set) var state: Feature.State {
 		willSet {
             if self.state != newValue {
@@ -29,15 +26,15 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     private var enviroment: Feature.Enviroment
 
 	private let outputSubject = PassthroughSubject<Feature.Output, Never>()
-    private let middleware: Middleware
-    private let reducer: Reducer
+    private let middleware: Feature.Middleware
+    private let reducer: Feature.Reducer
 
     public init(
         initialState: Feature.State,
         enviroment: Feature.Enviroment,
         feedbacks: [AnyPublisher<Feature.Feedback, Never>] = [],
-        middleware: @escaping Middleware,
-        reducer: @escaping Reducer
+        middleware: @escaping Feature.Middleware,
+        reducer: @escaping Feature.Reducer
     ) {
 		self.state = initialState
         self.enviroment = enviroment
