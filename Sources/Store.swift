@@ -77,6 +77,7 @@ private extension Store {
 
     func dispatch(_ intent: Intent<Feature>) {
         let task = self.middleware(self.state, &self.enviroment, intent)
+        self.log(intent)
         self.perform(task)
     }
 
@@ -107,9 +108,11 @@ private extension Store {
     func perform(_ event: EffectTask<Feature>.Event) {
         switch event {
         case let .output(output):
+            self.log(output)
             self.outputSubject.send(output)
 
         case let .effect(effect):
+            self.log(effect)
             self.reducer(&self.state, effect)
 
         case let .combine(events):
@@ -118,4 +121,16 @@ private extension Store {
             }
         }
     }
+
+    func log(_ value: Any) {
+        LogHandler?(value, String(describing: Feature.self))
+    }
+}
+
+public var LogHandler: ((Any, String) -> Void)? = { value, feature in
+    #if DEBUG
+    print(String(repeating: "_", count: 85))
+    print(feature, value)
+    print(String(repeating: "_", count: 85))
+    #endif
 }

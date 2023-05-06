@@ -2,49 +2,64 @@
 //  Created by ___FULLUSERNAME___ on ___DATE___
 //
 
+import SwiftUI
 import StoreSwift
 
-enum ___VARIABLE_featureName___Feature: Feature {
-
-    enum Action: Equatable {
-
-        case viewDidLoad
+public enum ___VARIABLE_featureName___Feature: Feature {
+    public struct Router {
+        public init() {}
     }
 
-	enum Effect: Equatable {
+    public enum Action: Equatable {
+        case viewAppear
+    }
 
+    public enum Effect: Equatable {
         case setLoading(Bool)
 	}
 
-    struct Enviroment {}
+    public struct Enviroment {
+        public let router: Router
 
-    struct State: Hashable {
-
-        var isLoading = false
+        public init(
+            router: Router = Router()
+        ) {
+            self.router = router
+        }
     }
 
-    static var store: Store<___VARIABLE_featureName___Feature> {
-        Store(
-            initialState: State(),
-            enviroment: Enviroment(),
-            middleware: middleware,
-            reducer: reducer
-        )
+    public struct State: Hashable {
+        public var isLoading: Bool
+
+        public init(isLoading: Bool = false) {
+            self.isLoading = isLoading
+        }
     }
 }
 
-extension ___VARIABLE_featureName___Feature {
+public extension ___VARIABLE_featureName___Feature {
+    @MainActor
+    static func view(
+        with router: Router
+    ) -> some View {
+        ___VARIABLE_featureName___View(store: Store(
+            initialState: State(),
+            enviroment: Enviroment(router: router),
+            middleware: middleware,
+            reducer: reducer
+        ))
+    }
 
-    static var middleware: Store<___VARIABLE_featureName___Feature>.Middleware {
-        { state, env, action in
-            switch action {
-            case .viewDidLoad:
+    static var middleware: Middleware {
+        { state, env, intent in
+            switch intent {
+            case .action(.viewAppear):
                 return .effect(.setLoading(true))
             }
         }
     }
 
-    static var reducer: Store<___VARIABLE_featureName___Feature>.Reducer {
+    static var reducer: Reducer {
         { state, effect in
             switch effect {
             case let .setLoading(value):
