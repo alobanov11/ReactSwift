@@ -55,6 +55,11 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
         self.dispatch(.action(action))
 	}
 
+    public func update<T>(_ keyPath: WritableKeyPath<Feature.State, T>, newValue: T, by action: Feature.Action) {
+        self.state[keyPath: keyPath] = newValue
+        self.send(action)
+    }
+
     public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
         Binding<T> {
             return self.state[keyPath: keyPath]
