@@ -21,12 +21,12 @@ public enum EffectTask<Feature: StoreSwift.Feature> {
 
 public extension EffectTask {
 
-    static func output(_ output: Feature.Output) -> EffectTask {
-        .event(.output(output))
+    static func output(_ output: Feature.Output...) -> EffectTask {
+        .event(.combine(output.map { .output($0) }))
     }
 
-    static func effect(_ effect: Feature.Effect) -> EffectTask {
-        .event(.effect(effect))
+    static func effect(_ effect: Feature.Effect...) -> EffectTask {
+        .event(.combine(effect.map { .effect($0) }))
     }
 
     static func combine(_ effects: EffectTask...) -> Self {
