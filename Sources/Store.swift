@@ -1,21 +1,16 @@
-//
-//  Created by Антон Лобанов on 25.03.2021.
-//
-
 import Combine
 import SwiftUI
 
 @MainActor
 @dynamicMemberLookup
 public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
-
-    public internal(set) var state: Feature.State {
-		willSet {
-            if self.state != newValue {
-                self.objectWillChange.send()
-            }
-		}
+    public var state: AnyPublisher<Feature.State, Never> {
+        self.stateSubject.eraseToAnyPublisher()
 	}
+
+    public var currentState: Feature.State {
+        self.stateSubject.value
+    }
 
     public var output: AnyPublisher<Feature.Output, Never> {
 		self.outputSubject.eraseToAnyPublisher()
@@ -26,20 +21,26 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     private var enviroment: Feature.Enviroment
 
 	private let outputSubject = PassthroughSubject<Feature.Output, Never>()
+    private let stateSubject: CurrentValueSubject<Feature.State, Never>
     private let middleware: Feature.Middleware
     private let reducer: Feature.Reducer
 
     public init(
-        initialState: Feature.State,
+        _ state: Feature.State,
         enviroment: Feature.Enviroment,
         feedbacks: [AnyPublisher<Feature.Feedback, Never>] = [],
         middleware: @escaping Feature.Middleware,
         reducer: @escaping Feature.Reducer
     ) {
-		self.state = initialState
+        self.stateSubject = .init(state)
         self.enviroment = enviroment
         self.middleware = middleware
         self.reducer = reducer
+        self.cancellables.append(
+            self.stateSubject.removeDuplicates().sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+        )
         self.cancellables.append(contentsOf: feedbacks.map {
             $0.sink(receiveValue: { [weak self] in self?.dispatch(.feedback($0)) })
         })
@@ -56,15 +57,19 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 	}
 
     public func update<T>(_ keyPath: WritableKeyPath<Feature.State, T>, newValue: T, by action: Feature.Action) {
-        self.state[keyPath: keyPath] = newValue
+        var state = self.currentState
+        state[keyPath: keyPath] = newValue
+        self.stateSubject.send(state)
         self.send(action)
     }
 
     public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
         Binding<T> {
-            return self.state[keyPath: keyPath]
+            return self.currentState[keyPath: keyPath]
         } set: { newValue in
-            self.state[keyPath: keyPath] = newValue
+            var state = self.currentState
+            state[keyPath: keyPath] = newValue
+            self.stateSubject.send(state)
             return self.send(action)
         }
     }
@@ -74,19 +79,18 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<Feature.State, Value>) -> Value {
-      self.state[keyPath: keyPath]
+        self.currentState[keyPath: keyPath]
     }
 }
 
 private extension Store {
-
-    func dispatch(_ intent: Intent<Feature>) {
-        let task = self.middleware(self.state, &self.enviroment, intent)
+    func dispatch(_ intent: Feature.Intent) {
+        let task = self.middleware(self.currentState, &self.enviroment, intent)
         self.log(intent)
         self.perform(task)
     }
 
-    func perform(_ task: EffectTask<Feature>) {
+    func perform(_ task: Feature.EffectTask) {
         switch task {
         case .none:
             break
@@ -110,15 +114,17 @@ private extension Store {
         }
     }
 
-    func perform(_ event: EffectTask<Feature>.Event) {
+    func perform(_ event: Feature.EffectTask.Event) {
         switch event {
         case let .output(output):
             self.log(output)
             self.outputSubject.send(output)
 
         case let .effect(effect):
+            var state = self.currentState
+            self.reducer(&state, effect)
+            self.stateSubject.send(state)
             self.log(effect)
-            self.reducer(&self.state, effect)
 
         case let .combine(events):
             for event in events {

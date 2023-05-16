@@ -1,16 +1,14 @@
 import Foundation
 
-public enum EffectTask<Feature: StoreSwift.Feature> {
-
+public enum EffectTask<Effect, Output, Enviroment> {
     public enum Event {
-
-        case output(Feature.Output)
-        case effect(Feature.Effect)
+        case output(Output)
+        case effect(Effect)
 
         indirect case combine([Event])
     }
 
-    public typealias Operation = (inout Feature.Enviroment) async -> EffectTask
+    public typealias Operation = (inout Enviroment) async -> EffectTask
 
     case none
     case event(Event)
@@ -20,41 +18,17 @@ public enum EffectTask<Feature: StoreSwift.Feature> {
 }
 
 public extension EffectTask {
-
-    static func output(_ output: Feature.Output...) -> EffectTask {
+    static func output(_ output: Output...) -> EffectTask {
         .event(.combine(output.map { .output($0) }))
     }
 
-    static func effect(_ effect: Feature.Effect...) -> EffectTask {
+    static func effect(_ effect: Effect...) -> EffectTask {
         .event(.combine(effect.map { .effect($0) }))
     }
 
     static func combine(_ effects: EffectTask...) -> Self {
         .combine(effects)
     }
-
-    func unwrap(_ env: inout Feature.Enviroment) async -> [Event] {
-        switch self {
-        case .none:
-            return []
-
-        case let .event(event):
-            return [event]
-
-        case let .run(operation):
-            let effect = await operation(&env)
-            let events = await effect.unwrap(&env)
-            return events
-
-        case let .combine(effects):
-            var events: [Event] = []
-            for effect in effects {
-                let subEvents = await effect.unwrap(&env)
-                events.append(contentsOf: subEvents)
-            }
-            return events
-        }
-    }
 }
 
-extension EffectTask.Event: Equatable where Feature.Output: Equatable, Feature.Effect: Equatable {}
+extension EffectTask.Event: Equatable where Output: Equatable, Effect: Equatable {}

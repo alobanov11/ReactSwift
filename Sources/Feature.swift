@@ -9,6 +9,9 @@ public protocol Feature {
 	associatedtype Output = Never
     associatedtype State: Equatable
 
-    typealias Middleware = (_: State, _: inout Enviroment, _: Intent<Self>) -> EffectTask<Self>
+    typealias EffectTask = StoreSwift.EffectTask<Effect, Output, Enviroment>
+    typealias Intent = StoreSwift.Intent<Action, Feedback>
+
+    typealias Middleware = (_: State, _: inout Enviroment, _: Intent) -> EffectTask
     typealias Reducer = (_: inout State, _: Effect) -> Void
 }

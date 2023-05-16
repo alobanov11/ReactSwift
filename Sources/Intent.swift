@@ -1,7 +1,6 @@
 import Foundation
 
-public enum Intent<Feature: StoreSwift.Feature> {
-
-    case action(Feature.Action)
-    case feedback(Feature.Feedback)
+public enum Intent<Action, Feedback> {
+    case action(Action)
+    case feedback(Feedback)
 }
