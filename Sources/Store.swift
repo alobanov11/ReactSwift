@@ -3,13 +3,14 @@ import SwiftUI
 
 @MainActor
 @dynamicMemberLookup
-public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
-    public var state: AnyPublisher<Feature.State, Never> {
-        self.stateSubject.eraseToAnyPublisher()
+public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Feature {
+    public internal(set) var state: Feature.State {
+        get { self.stateSubject.value }
+        set { self.stateSubject.send(newValue) }
 	}
 
-    public var currentState: Feature.State {
-        self.stateSubject.value
+    public var currentState: AnyPublisher<Feature.State, Never> {
+        self.stateSubject.eraseToAnyPublisher()
     }
 
     public var output: AnyPublisher<Feature.Output, Never> {
@@ -18,24 +19,24 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 
     private var tasks: [Task<Void, Never>] = []
     private var cancellables: [AnyCancellable] = []
-    private var enviroment: Feature.Enviroment
+    private var enviroment: Feature.Enviroment?
 
 	private let outputSubject = PassthroughSubject<Feature.Output, Never>()
     private let stateSubject: CurrentValueSubject<Feature.State, Never>
-    private let middleware: Feature.Middleware
-    private let reducer: Feature.Reducer
+    private let reduce: Feature.Reduce
+    private let mutate: Feature.Mutate
 
     public init(
         _ state: Feature.State,
-        enviroment: Feature.Enviroment,
+        enviroment: Feature.Enviroment? = nil,
         feedbacks: [AnyPublisher<Feature.Feedback, Never>] = [],
-        middleware: @escaping Feature.Middleware,
-        reducer: @escaping Feature.Reducer
+        reduce: @escaping Feature.Reduce = { _, _, _ in .none },
+        mutate: @escaping Feature.Mutate = { _, _ in }
     ) {
         self.stateSubject = .init(state)
         self.enviroment = enviroment
-        self.middleware = middleware
-        self.reducer = reducer
+        self.reduce = reduce
+        self.mutate = mutate
         self.cancellables.append(
             self.stateSubject.removeDuplicates().sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -57,19 +58,15 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
 	}
 
     public func update<T>(_ keyPath: WritableKeyPath<Feature.State, T>, newValue: T, by action: Feature.Action) {
-        var state = self.currentState
-        state[keyPath: keyPath] = newValue
-        self.stateSubject.send(state)
+        self.state[keyPath: keyPath] = newValue
         self.send(action)
     }
 
     public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
         Binding<T> {
-            return self.currentState[keyPath: keyPath]
+            return self.state[keyPath: keyPath]
         } set: { newValue in
-            var state = self.currentState
-            state[keyPath: keyPath] = newValue
-            self.stateSubject.send(state)
+            self.state[keyPath: keyPath] = newValue
             return self.send(action)
         }
     }
@@ -79,13 +76,15 @@ public final class Store<Feature: StoreSwift.Feature>: ObservableObject {
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<Feature.State, Value>) -> Value {
-        self.currentState[keyPath: keyPath]
+        self.state[keyPath: keyPath]
     }
 }
 
 private extension Store {
     func dispatch(_ intent: Feature.Intent) {
-        let task = self.middleware(self.currentState, &self.enviroment, intent)
+        guard var env = self.enviroment else { return }
+        let task = self.reduce(self.state, &env, intent)
+        self.enviroment = env
         self.log(intent)
         self.perform(task)
     }
@@ -100,8 +99,7 @@ private extension Store {
 
         case let .run(operation):
             self.tasks.append(Task {
-                guard Task.isCancelled == false else { return }
-                var env = self.enviroment
+                guard Task.isCancelled == false, var env = self.enviroment else { return }
                 let task = await operation(&env)
                 self.enviroment = env
                 self.perform(task)
@@ -121,9 +119,7 @@ private extension Store {
             self.outputSubject.send(output)
 
         case let .effect(effect):
-            var state = self.currentState
-            self.reducer(&state, effect)
-            self.stateSubject.send(state)
+            self.mutate(&state, effect)
             self.log(effect)
 
         case let .combine(events):
