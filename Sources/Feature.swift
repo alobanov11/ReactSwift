@@ -1,16 +1,16 @@
 import UIKit
 
 public protocol Feature {
+    associatedtype State: Equatable
     associatedtype Action
     associatedtype Effect
-    associatedtype Enviroment
+    associatedtype Context
     associatedtype Feedback = Never
-	associatedtype Output = Never
-    associatedtype State: Equatable
-
-    typealias EffectTask = StoreSwift.EffectTask<Effect, Output, Enviroment>
+    associatedtype Output = Never
+    
+    typealias EffectTask = StoreSwift.EffectTask<Effect, Output, Context>
     typealias Intent = StoreSwift.Intent<Action, Feedback>
-
-    typealias Reduce = (State, inout Enviroment, Intent) -> EffectTask
-    typealias Mutate = (inout State, Effect) -> Void
+    
+    typealias Middleware = (State, inout Context, Intent) -> EffectTask
+    typealias Reducer = (inout State, Effect) -> Void
 }
