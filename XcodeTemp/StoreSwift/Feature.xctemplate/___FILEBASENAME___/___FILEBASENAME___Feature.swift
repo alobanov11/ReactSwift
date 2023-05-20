@@ -1,64 +1,61 @@
-//
-//  Created by ___FULLUSERNAME___ on ___DATE___
-//
-
 import SwiftUI
 import StoreSwift
 
-public enum ___VARIABLE_featureName___Feature: Feature {
-    public struct Router {
-        public init() {}
-    }
+// MARK: Enviroment
+public struct ___VARIABLE_featureName___Enviroment {
+    static let preview = ___VARIABLE_featureName___Enviroment()
 
-    public enum Action: Equatable {
+    public init() {}
+}
+
+// MARK: Init feature
+@MainActor
+public func ___VARIABLE_featureName___ViewWith(
+    env: ___VARIABLE_featureName___Enviroment
+) -> some View {
+    ___VARIABLE_featureName___View(store: Store(
+        initialState: ___VARIABLE_featureName___Feature.State(),
+        context: ___VARIABLE_featureName___Feature.Context(env: env),
+        middleware: ___VARIABLE_featureName___Feature.middleware,
+        reducer: ___VARIABLE_featureName___Feature.reducer
+    ))
+}
+
+// MARK: Feature
+enum ___VARIABLE_featureName___Feature: Feature {
+    enum Action: Equatable {
         case viewAppear
     }
 
-    public enum Effect: Equatable {
+    enum Effect: Equatable {
         case setLoading(Bool)
 	}
 
-    public struct Enviroment {
-        public let router: Router
+    struct Context {
+        static let preview = Context(env: .preview)
 
-        public init(
-            router: Router = Router()
-        ) {
-            self.router = router
-        }
+        let env: ___VARIABLE_featureName___Enviroment
     }
 
-    public struct State: Hashable {
-        public var isLoading: Bool
-
-        public init(isLoading: Bool = false) {
-            self.isLoading = isLoading
-        }
+    struct State: Hashable {
+        var isLoading = false
     }
 }
 
-public extension ___VARIABLE_featureName___Feature {
-    @MainActor
-    static func view(
-        with router: Router
-    ) -> some View {
-        ___VARIABLE_featureName___View(store: Store(
-            initialState: State(),
-            enviroment: Enviroment(router: router),
-            middleware: middleware,
-            reducer: reducer
-        ))
-    }
-
+// MARK: Middleware
+extension ___VARIABLE_featureName___Feature {
     static var middleware: Middleware {
-        { state, env, intent in
+        { state, ctx, intent in
             switch intent {
             case .action(.viewAppear):
                 return .effect(.setLoading(true))
             }
         }
     }
+}
 
+// MARK: Reducer
+extension ___VARIABLE_featureName___Feature {
     static var reducer: Reducer {
         { state, effect in
             switch effect {

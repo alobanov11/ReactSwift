@@ -1,9 +1,9 @@
 import Foundation
 
-public var _printChanges: ((Any, String) -> Void)? = { value, feature in
+public var LogHandler: ((String) -> Void)? = { value in
     #if DEBUG
     print(String(repeating: "_", count: 85))
-    print(feature, value)
+    print(value)
     print(String(repeating: "_", count: 85))
     #endif
 }

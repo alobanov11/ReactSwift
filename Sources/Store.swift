@@ -27,7 +27,7 @@ public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Fe
     private let reducer: Feature.Reducer
     
     public init(
-        _ state: Feature.State,
+        state: Feature.State,
         context: Feature.Context,
         feedbacks: [AnyPublisher<Feature.Feedback, Never>] = [],
         middleware: @escaping Feature.Middleware,
@@ -43,7 +43,10 @@ public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Fe
             }
         )
         self.cancellables.append(contentsOf: feedbacks.map {
-            $0.sink(receiveValue: { [weak self] in self?.dispatch(.feedback($0)) })
+            $0.sink(receiveValue: { [weak self] in
+                self?.print($0)
+                self?.dispatch(.feedback($0))
+            })
         })
     }
     
@@ -52,17 +55,27 @@ public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Fe
             task.cancel()
         }
     }
-    
+}
+
+extension Store {
     public func send(_ action: Feature.Action) {
+        self.print(action)
         self.dispatch(.action(action))
     }
-    
-    public func update<T>(_ keyPath: WritableKeyPath<Feature.State, T>, newValue: T, by action: Feature.Action) {
+
+    public func update<T>(
+        _ keyPath: WritableKeyPath<Feature.State, T>,
+        newValue: T,
+        by action: Feature.Action
+    ) {
         self.state[keyPath: keyPath] = newValue
         self.send(action)
     }
-    
-    public func binding<T>(_ keyPath: WritableKeyPath<Feature.State, T>, by action: Feature.Action) -> Binding<T> {
+
+    public func binding<T>(
+        _ keyPath: WritableKeyPath<Feature.State, T>,
+        by action: Feature.Action
+    ) -> Binding<T> {
         Binding<T> {
             return self.state[keyPath: keyPath]
         } set: { newValue in
@@ -70,12 +83,14 @@ public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Fe
             return self.send(action)
         }
     }
-    
+
     public func action(_ action: Feature.Action) -> () -> Void {
         { self.send(action) }
     }
-    
-    public subscript<Value>(dynamicMember keyPath: KeyPath<Feature.State, Value>) -> Value {
+
+    public subscript<Value>(
+        dynamicMember keyPath: KeyPath<Feature.State, Value>
+    ) -> Value {
         self.state[keyPath: keyPath]
     }
 }
@@ -83,7 +98,6 @@ public final class Store<Feature>: ObservableObject where Feature: StoreSwift.Fe
 private extension Store {
     func dispatch(_ intent: Feature.Intent) {
         let task = self.middleware(self.state, &self.context, intent)
-        self.print(intent)
         self.perform(task)
     }
     
@@ -118,9 +132,9 @@ private extension Store {
             self.outputSubject.send(output)
             
         case let .effect(effect):
-            self.reducer(&self.state, effect)
             self.print(effect)
-            
+            self.reducer(&self.state, effect)
+
         case let .combine(events):
             for event in events {
                 self.perform(event)
@@ -129,6 +143,10 @@ private extension Store {
     }
     
     func print(_ value: Any) {
-        _printChanges?(value, String(describing: Feature.self))
+        let namespace = String(reflecting: Feature.self).components(separatedBy: ".").first
+        LogHandler?(
+            String(reflecting: value)
+                .replacingOccurrences(of: namespace.map { $0 + "." } ?? "", with: "")
+        )
     }
 }

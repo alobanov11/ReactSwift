@@ -1,7 +1,3 @@
-//
-//  Created by ___FULLUSERNAME___ on ___DATE___
-//
-
 import StoreSwift
 import SwiftUI
 
@@ -9,7 +5,10 @@ struct ___VARIABLE_featureName___View: View {
     @StateObject var store: Store<___VARIABLE_featureName___Feature>
 
     var body: some View {
-        Text("Loading \(store.isLoading.description)")
+        ZStack {
+            Text("Loading \(store.isLoading.description)")
+        }
+        .onAppear(perform: store.action(.viewAppear))
     }
 }
 
@@ -17,13 +16,13 @@ struct ___VARIABLE_featureName___Preview: PreviewProvider {
     typealias Feature = ___VARIABLE_featureName___Feature
 
     static var state: Feature.State {
-        .init()
+        Feature.State()
     }
 
     static var store: Store<Feature> {
         Store<Feature>(
             initialState: state,
-            enviroment: Feature.Enviroment(),
+            context: .preview,
             middleware: Feature.middleware,
             reducer: Feature.reducer
         )
