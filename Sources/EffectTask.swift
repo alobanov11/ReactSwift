@@ -1,34 +1,35 @@
 import Foundation
 
-public enum EffectTask<Effect, Output, Context> {
-    public enum Event {
-        case output(Output)
-        case effect(Effect)
-        
-        indirect case combine([Event])
-    }
-    
-    public typealias Operation = (inout Context) async -> EffectTask
-    
+public enum EffectTask<Effect> {
+    public typealias Operation = @Sendable () async -> Self
+
     case none
-    case event(Event)
+    case effect(Effect)
     case run(Operation)
-    
-    indirect case combine([EffectTask])
-}
+    indirect case combine([Self])
 
-public extension EffectTask {
-    static func output(_ output: Output...) -> EffectTask {
-        .event(.combine(output.map { .output($0) }))
+    public static func zip(_ tasks: Self...) -> Self {
+        .combine(tasks)
     }
-    
-    static func effect(_ effect: Effect...) -> EffectTask {
-        .event(.combine(effect.map { .effect($0) }))
-    }
-    
-    static func combine(_ effects: EffectTask...) -> Self {
-        .combine(effects)
+
+    public func unzip() async -> [Effect] {
+        switch self {
+        case .none:
+            return []
+
+        case let .effect(effect):
+            return [effect]
+
+        case let .run(operation):
+            let task = await operation()
+            return await task.unzip()
+
+        case let .combine(tasks):
+            var effects: [Effect] = []
+            for task in tasks {
+                await effects.append(contentsOf: task.unzip())
+            }
+            return effects
+        }
     }
 }
-
-extension EffectTask.Event: Equatable where Output: Equatable, Effect: Equatable {}

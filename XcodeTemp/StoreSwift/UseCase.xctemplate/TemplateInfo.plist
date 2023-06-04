@@ -5,24 +5,24 @@
 	<key>Kind</key>
 	<string>Xcode.IDEFoundation.TextSubstitutionFileTemplateKind</string>
 	<key>Description</key>
-	<string>Feature</string>
+	<string>UseCase</string>
 	<key>SortOrder</key>
 	<string>1</string>
 	<key>DefaultCompletionName</key>
-	<string>Feature</string>
+	<string>UseCase</string>
 	<key>Platforms</key>
 	<array>
-		<string>com.apple.platform.iphoneos</string>
+		<array/>
 	</array>
 	<key>Options</key>
 	<array>
 		<dict>
 			<key>Description</key>
-			<string>The name of the feature to create</string>
+			<string>The name of the useCase to create</string>
 			<key>Identifier</key>
-			<string>featureName</string>
+			<string>useCaseName</string>
 			<key>Name</key>
-			<string>New Feature Name:</string>
+			<string>New useCase name:</string>
 			<key>NotPersisted</key>
 			<true/>
 			<key>Required</key>
@@ -32,7 +32,7 @@
 		</dict>
 		<dict>
 			<key>Default</key>
-			<string>___VARIABLE_featureName___</string>
+			<string>___VARIABLE_useCaseName___</string>
 			<key>Identifier</key>
 			<string>productName</string>
 			<key>Type</key>

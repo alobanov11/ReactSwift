@@ -9,7 +9,7 @@ let package = Package(
 		.iOS("13.0"),
 	],
     products: [
-        .library(name: "StoreSwift", targets: ["StoreSwift"]),
+        .library(name: "StoreSwift", targets: ["StoreSwift", "StoreSwiftTests"]),
     ],
     dependencies: [],
     targets: [
