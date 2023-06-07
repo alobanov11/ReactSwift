@@ -14,7 +14,7 @@ struct ___VARIABLE_useCaseName___View: View {
 
 struct ___VARIABLE_useCaseName___Preview: PreviewProvider {
     static var state: ___VARIABLE_useCaseName___UseCase.State {
-        UseCase.State()
+        ___VARIABLE_useCaseName___UseCase.State()
     }
 
     static var previews: some View {
