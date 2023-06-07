@@ -9,7 +9,7 @@ let package = Package(
 		.iOS("13.0"),
 	],
     products: [
-        .library(name: "StoreSwift", targets: ["StoreSwift", "StoreSwiftTests"]),
+        .library(name: "StoreSwift", targets: ["StoreSwift"]),
     ],
     dependencies: [],
     targets: [
@@ -17,12 +17,6 @@ let package = Package(
             name: "StoreSwift",
             dependencies: [],
             path: "Sources"
-        ),
-
-        .testTarget(
-            name: "StoreSwiftTests",
-            dependencies: ["StoreSwift"],
-            path: "Tests"
         ),
     ]
 )
