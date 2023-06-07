@@ -1,27 +1,22 @@
 import UIKit
 
-public typealias Reducer<Event, State, Effect, Object> = (
-    _: Event,
-    _: inout State,
-    _: inout Object
-) -> EffectTask<Effect>
-
 public protocol UseCase {
     associatedtype State: Equatable
     associatedtype Action
     associatedtype Effect = Never
 
-    typealias ActionReducer = Reducer<Action, State, Effect, Self>
-    typealias EffectReducer = Reducer<Effect, State, Effect, Self>
-
-    static var actionReducer: ActionReducer { get }
-    static var effectReducer: EffectReducer { get }
+    static var actionReducer: Reducer<Action, Self> { get }
+    static var effectReducer: Reducer<Effect, Self> { get }
 }
 
-
+public typealias Reducer<Event, UseCaseType: UseCase> = (
+    _: Event,
+    _: inout UseCaseType.State,
+    _: inout UseCaseType
+) -> EffectTask<UseCaseType.Effect>
 
 public extension UseCase {
-    static var effectReducer: EffectReducer {
+    static var effectReducer: Reducer<Effect, Self> {
         { _, _, _ in .none }
     }
 }
