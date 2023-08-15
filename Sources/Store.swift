@@ -1,52 +1,86 @@
-//
-//  Created by Антон Лобанов on 09.04.2022.
-//
+import SwiftUI
+import Combine
 
-import Foundation
+@dynamicMemberLookup
+public final class Store<U: UseCase>: ObservableObject {
+    @Published public private(set) var state: U.State
 
-open class Store<M: Module>: ViewStore<M> {
-	public typealias Module = M
-	public typealias Action = M.Action
-	public typealias Effect = M.Effect
-	public typealias Event = M.Event
-	public typealias State = M.State
+    private var tasks: [Task<Void, Never>] = []
 
-	open class func reduce(_ state: inout State, effect: Effect) throws {
-		print("Override in subclass")
-	}
+    private let reducer: U.Reducer
+    private let middleware: U.Middleware
 
-	@discardableResult
-	public func invoke(effect: Effect, trigger: Bool = true) -> Self {
-		self.log([effect, "trigger: \(trigger)"])
-		self.needsToCallObservers = trigger
-		do {
-			try Self.reduce(&self.state, effect: effect)
-		}
-		catch {
-			self.throw(error)
-		}
-		self.needsToCallObservers = true
-		return self
-	}
+    public init(
+        _ initialState: U.State,
+        useCase: U
+    ) {
+        self.state = initialState
+        self.reducer = useCase.reducer
+        self.middleware = useCase.middleware
+    }
 
-	@discardableResult
-	public func invoke(event: Event) -> Self {
-		self.log([event])
-		self._event.send(event)
-		return self
-	}
+    deinit {
+        for task in self.tasks {
+            task.cancel()
+        }
+    }
 
-	@discardableResult
-	public func `throw`(_ error: Error) -> Self {
-		self.log([error])
-		self._error.send(.error(error))
-		return self
-	}
+    public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
+        self.state[keyPath: keyPath]
+    }
+}
 
-	@discardableResult
-	public func `throw`(_ error: String) -> Self {
-		self.log([error])
-		self._error.send(.text(error))
-		return self
-	}
+extension Store {
+    public func send(_ action: U.Action) {
+        let task = self.middleware(self.state, action)
+        self.perform(task)
+    }
+
+    public func update<T>(
+        _ keyPath: WritableKeyPath<U.State, T>,
+        newValue: T,
+        by action: U.Action
+    ) {
+        self.state[keyPath: keyPath] = newValue
+        self.send(action)
+    }
+
+    public func binding<T>(
+        _ keyPath: WritableKeyPath<U.State, T>,
+        by action: U.Action
+    ) -> Binding<T> {
+        Binding<T> {
+            return self.state[keyPath: keyPath]
+        } set: { newValue in
+            self.state[keyPath: keyPath] = newValue
+            return self.send(action)
+        }
+    }
+
+    public func action(_ action: U.Action) -> () -> Void {
+        { self.send(action) }
+    }
+}
+
+private extension Store {
+    func perform(_ task: EffectTask<U.Effect>) {
+        switch task {
+        case .none:
+            break
+
+        case let .effect(effect):
+            self.reducer(&self.state, effect)
+
+        case let .run(operation):
+            self.tasks.append(Task {
+                guard Task.isCancelled == false else { return }
+                await self.perform(operation())
+            })
+
+        case let .combine(tasks):
+            for task in tasks {
+                self.perform(task)
+            }
+        }
+    }
 }

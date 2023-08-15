@@ -9,7 +9,7 @@
 	<key>SortOrder</key>
 	<string>1</string>
 	<key>DefaultCompletionName</key>
-	<string>Feature</string>
+	<string>Module</string>
 	<key>Platforms</key>
 	<array>
 		<string>com.apple.platform.iphoneos</string>
@@ -18,7 +18,7 @@
 	<array>
 		<dict>
 			<key>Description</key>
-			<string>The name of the feature to create</string>
+			<string>The name of the module to create</string>
 			<key>Identifier</key>
 			<string>moduleName</string>
 			<key>Name</key>
