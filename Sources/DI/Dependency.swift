@@ -4,7 +4,7 @@ import Foundation
 public struct Dependency<Value> {
     public var keyPath: WritableKeyPath<DIContainer, Value>
 
-    public init(keyPath: WritableKeyPath<DIContainer, Value>) {
+    public init(_ keyPath: WritableKeyPath<DIContainer, Value>) {
         self.keyPath = keyPath
     }
 
