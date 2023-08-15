@@ -70,8 +70,8 @@ private extension Store {
             break
 
         case let .publisher(cancellable):
-            self.cancellables.insert(cancellable { [weak self] task in
-                self?.perform(task)
+            self.cancellables.insert(cancellable { [weak self] effect in
+                self?.perform(.effect(effect))
             })
 
         case let .effect(effect):

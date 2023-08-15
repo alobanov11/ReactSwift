@@ -3,7 +3,7 @@ import Combine
 
 public enum EffectTask<Effect> {
     public typealias Operation = @Sendable () async -> Self
-    public typealias Feedback = (Self) -> Void
+    public typealias Feedback = (Effect) -> Void
 
     case none
     case publisher((@escaping Feedback) -> AnyCancellable)
