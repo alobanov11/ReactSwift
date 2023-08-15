@@ -6,6 +6,7 @@ public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
     private var tasks: [Task<Void, Never>] = []
+    private var cancellables: Set<AnyCancellable> = []
 
     private let reducer: U.Reducer
     private let middleware: U.Middleware
@@ -67,6 +68,9 @@ private extension Store {
         switch task {
         case .none:
             break
+
+        case let .cancellable(value):
+            self.cancellables.insert(value)
 
         case let .effect(effect):
             self.reducer(&self.state, effect)
