@@ -6,7 +6,7 @@ public enum EffectTask<Effect> {
     public typealias Feedback = (Self) -> Void
 
     case none
-    case publisher((Feedback) -> AnyCancellable)
+    case publisher((@escaping Feedback) -> AnyCancellable)
     case effect(Effect)
     case run(Operation)
     indirect case combine([Self])
