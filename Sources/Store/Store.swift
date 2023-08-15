@@ -69,8 +69,8 @@ private extension Store {
         case .none:
             break
 
-        case let .sink(publisher):
-            self.cancellables.insert(publisher { [weak self] task in
+        case let .publisher(cancellable):
+            self.cancellables.insert(cancellable { [weak self] task in
                 self?.perform(task)
             })
 
