@@ -7,9 +7,13 @@ public enum EffectTask<Effect> {
 
     case none
     case publisher((@escaping Feedback) -> AnyCancellable)
-    case effect(Effect)
+    case effects([Effect])
     case run(Operation)
     indirect case combine([Self])
+
+    public static func effect(_ effects: Effect...) -> Self {
+        .effects(effects)
+    }
 
     public static func merge(_ tasks: Self...) -> Self {
         .combine(tasks)
