@@ -1,37 +1,43 @@
 # StoreSwift
 
-StoreSwift is a lightweight library which allows you to make undirection data flow architecture.
+StoreSwift is a streamlined library designed to facilitate undirectional data flow architecture.
 
+## The Challenges
 
-
-## The problems
-
-There is no perfect an architecture which could be fitted to any Application. Each architecture in iOS has scalability issues:
-* **MVC**: SOLID principles are violated totaly
-* **MVP**: Presenter could turn to God object and it's getting hard to separate a side effect logic and a business logic
-* **VIPER/VIP**: In general the same problems as MVP has, but also low readability
-* **MVVM**: Must be used with Rx similar libraries and at the beginning could take a time to set up.
-* **Redux similar**: It's easy to underastand the dependency between a View and a business logic by undirection data flow
-
-
+No single architecture is perfectly suited for every application. Many architectures in iOS come with scalability challenges:
+* **MVC**: Often completely violates the SOLID principles.
+* **MVP**: The presenter can morph into a "God object," making it challenging to differentiate between side effect logic and business logic.
+* **VIPER/VIP**: Shares similar issues with MVP, coupled with reduced readability.
+* **MVVM**: Typically requires integration with Rx-like libraries and can be time-consuming to set up initially.
+* **Redux-style**: Makes it simpler to understand the relationship between a View and business logic through undirectional data flow.
 
 ## How to use
 
-First you need to define a module to conform this protocol. It could be a UIViewController module or a separeted UIView part.
+First you need to define a UseCase:
 
 ```swift
-public protocol Module {
-    /// All action which View can have (e.g. viewDidLoad / didTapOnSubmitButton)
-    associatedtype Action: Equatable
+struct ProfileUseCase: UseCase {
+    struct State: Equatable {
+        var isLoading = false
+        var name: String?
+    }
 	
-    /// Effect how we want to change state (e.g. setLoading(Bool), setData([String])) 
-    associatedtype Effect: Equatable
+    enum Action {
+        case viewAppeared
+    }
+    
+    enum Effect {
+        case setLoading(Bool)
+        case setName(String)
+    }
 	
-    /// Helper to call some functional on a View directly without changing state
-    associatedtype Event: Equatable = NoEvent
-	
-    /// State of a View
-    associatedtype State: Equatable
+    var reducer: Reducer {
+        return { state, action in
+            switch action {
+            case .
+            }
+        }
+    }
 }
 ```
 
