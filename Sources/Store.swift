@@ -71,7 +71,7 @@ private extension Store {
 
         case let .publisher(cancellable):
             self.cancellables.insert(cancellable { [weak self] effect in
-                self?.perform(.effect(effect))
+                self?.perform(effect)
             })
 
         case let .effects(effects):
