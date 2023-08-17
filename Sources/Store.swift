@@ -5,7 +5,7 @@ import Combine
 public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
-    private var tasks: [Task<Void, Never>] = []
+    private var tasks: [AnyHashable: Task<Void, Never>] = [:]
     private var cancellables: Set<AnyCancellable> = []
 
     private let reducer: U.Reducer
@@ -21,7 +21,7 @@ public final class Store<U: UseCase>: ObservableObject {
     }
 
     deinit {
-        for task in self.tasks {
+        for task in self.tasks.values {
             task.cancel()
         }
     }
@@ -79,11 +79,12 @@ private extension Store {
                 self.reducer(&self.state, effect)
             }
 
-        case let .run(operation):
-            self.tasks.append(Task {
+        case let .run(id, operation):
+            self.tasks[id]?.cancel()
+            self.tasks[id] = Task {
                 guard Task.isCancelled == false else { return }
                 await self.perform(operation())
-            })
+            }
 
         case let .combine(tasks):
             for task in tasks {
