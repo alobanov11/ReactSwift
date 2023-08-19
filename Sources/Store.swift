@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 
+@MainActor
 @dynamicMemberLookup
 public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
