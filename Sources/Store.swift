@@ -12,10 +12,10 @@ public final class Store<U: UseCase>: ObservableObject {
     private let reducer: U.Reducer
     private let middleware: U.Middleware
 
-    public init(
+    public init<T: UseCase>(
         _ initialState: U.State,
-        useCase: U
-    ) {
+        useCase: T
+    ) where T.State == U.State, T.Action == U.Action, T.Effect == U.Effect {
         self.state = initialState
         self.reducer = useCase.reducer
         self.middleware = useCase.middleware
