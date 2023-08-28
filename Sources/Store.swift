@@ -6,8 +6,7 @@ import Combine
 public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
-    private var tasks: [AnyHashable: Task<Void, Never>] = [:]
-    private var cancellables: Set<AnyCancellable> = []
+    private var cancellables: [AnyHashable: AnyCancellable] = [:]
 
     private let reducer: U.Reducer
     private let middleware: U.Middleware
@@ -19,12 +18,6 @@ public final class Store<U: UseCase>: ObservableObject {
         self.state = initialState
         self.reducer = useCase.reducer
         self.middleware = useCase.middleware
-    }
-
-    deinit {
-        for task in self.tasks.values {
-            task.cancel()
-        }
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
@@ -70,20 +63,18 @@ private extension Store {
         case .none:
             break
 
-        case let .publisher(cancellable):
-            self.cancellables.insert(cancellable { [weak self] effect in
+        case let .publisher(id, cancellable):
+            self.cancellables[id] = cancellable { [weak self] effect in
                 self?.perform(effect)
-            })
+            }
 
-        case let .effects(effects):
+        case let .multiple(effects):
             for effect in effects {
                 self.reducer(&self.state, effect)
             }
 
-        case let .run(id, operation):
-            self.tasks[id]?.cancel()
-            self.tasks[id] = Task {
-                guard Task.isCancelled == false else { return }
+        case let .run(operation):
+            Task {
                 await self.perform(operation())
             }
 

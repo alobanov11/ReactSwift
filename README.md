@@ -19,7 +19,6 @@ First you need to define a UseCase:
 struct ProfileUseCase: UseCase {
     struct State: Equatable {
         var isLoading = false
-        var name: String?
     }
 	
     enum Action {
@@ -28,84 +27,50 @@ struct ProfileUseCase: UseCase {
     
     enum Effect {
         case setLoading(Bool)
-        case setName(String)
     }
 	
     var reducer: Reducer {
+        return { state, effect in
+            switch effect {
+            case let .setLoading(value):
+                state.isLoading = value
+            }
+        }
+    }
+    
+    var middleware: Middleware {
         return { state, action in
             switch action {
-            case .
+            case let .viewAppeared(value):
+                return .merge(
+                    .effect(.setLoading(true),
+                    .run { // perform asyncronous task and return EffectTask }
+                )
             }
         }
     }
 }
 ```
 
-Then you need to create your own Store:
+
+Then simple use it in view:
 
 ```swift
-final class AuthStore: Store<AuthModule> {
-    /// The view calls this function 
-    override func dispatch(_ action: Action) {
-        switch action {
-        case .viewDidLoad:
-            self.invoke(effect: .setLoading(true))
-        }
-    }
+@StateObject var store: Store<ProfileUseCase>
+...
+store.isLoading
+...
+store.send(.viewAppeared)
+...
+store.$state.sink { state in ... }
 
-    /// Static function which can change State by an effect
-    override class func reduce(_ state: inout State, effect: Effect) {
-        switch effect {
-        case let .setLoading(value):
-            state.isLoading = value
-        }
-    }
-}
 ```
 
-Then provide it to the View:
-
-```swift
-final class AuthViewController: UIViewController {
-    typealias Module = AuthModule
-    
-	/// Store conforms ViewStore but it doesn't have internal methods
-    private let store: ViewStore<Module>
-
-    init(store: ViewStore<Module>) {
-        self.store = store
-        super.init()
-    }
-
-    /// ViewStore object contains a lot of observable methods
-    /// These methods can help you to make View reactive but without using complex instruments like Rx
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.store
-            .bind(\.isSubmitEnabled, to: self, \AuthViewController.isSubmitEnabled)
-            .observe(\.code) { [weak self] code in self?.setCode(code) }
-            .listen { [weak self] event in
-                switch event {
-                case let .setActive(value):
-                    self?.isActive = value
-                }
-            }
-            .catch { [weak self] error in
-                self?.showError(error)
-            }
-            .dispatch(.viewDidLoad)
-    }
-}
-```
-
-As I said, it looks pretty easy.)
-
+Simple to use.
 
 ## Requirements
 
 StoreSwift supports **iOS 13 and up**, and can be compiled with **Swift 5.5 and up**.
-
-
 
 ## Installation
 
