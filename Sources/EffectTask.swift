@@ -7,12 +7,12 @@ public enum EffectTask<Effect> {
 
     case none
     case publisher(AnyHashable, (@escaping Send) -> AnyCancellable)
-    case multiple([Effect])
+    case effects([Effect])
     case run(Operation)
     indirect case combine([Self])
 
     public static func effect(_ effects: Effect...) -> Self {
-        .multiple(effects)
+        .effects(effects)
     }
 
     public static func merge(_ tasks: Self...) -> Self {

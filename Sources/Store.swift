@@ -68,7 +68,7 @@ private extension Store {
                 self?.perform(effect)
             }
 
-        case let .multiple(effects):
+        case let .effects(effects):
             for effect in effects {
                 self.reducer(&self.state, effect)
             }
