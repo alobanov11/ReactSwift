@@ -6,18 +6,17 @@ import Combine
 public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
+    private var useCase: U?
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
 
-    private let reducer: U.Reducer
+    private let reduce: U.Reducer
     private let middleware: U.Middleware
 
-    public init<T: UseCase>(
-        _ initialState: U.State,
-        useCase: T
-    ) where T.State == U.State, T.Action == U.Action, T.Effect == U.Effect {
+    public init(_ initialState: U.State, useCase: U? = nil) {
         self.state = initialState
-        self.reducer = useCase.reducer
-        self.middleware = useCase.middleware
+        self.useCase = useCase
+        self.reduce = U.reduce
+        self.middleware = U.middleware
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
@@ -58,24 +57,33 @@ extension Store {
 }
 
 private extension Store {
-    func perform(_ task: EffectTask<U.Effect>) {
+    func perform(_ task: EffectTask<U>) {
         switch task {
         case .none:
             break
 
-        case let .publisher(id, cancellable):
-            self.cancellables[id] = cancellable { [weak self] effect in
-                self?.perform(effect)
+        case let .publisher(id, publisher):
+            if let useCase = self.useCase {
+                self.cancellables[id] = publisher(useCase, { self.state })
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] in self?.perform($0) }
             }
 
         case let .effects(effects):
             for effect in effects {
-                self.reducer(&self.state, effect)
+                self.reduce(&self.state, effect)
             }
 
         case let .run(operation):
             Task {
-                await self.perform(operation())
+                guard let useCase = self.useCase else { return }
+                await self.perform(operation(useCase))
+            }
+
+        case let .runAndForget(operation):
+            Task {
+                guard let useCase = self.useCase else { return }
+                await operation(useCase)
             }
 
         case let .combine(tasks):

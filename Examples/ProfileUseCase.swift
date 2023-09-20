@@ -14,7 +14,11 @@ struct ProfileUseCase: UseCase {
         case setLoading(Bool)
     }
 
-    var reducer: Reducer {
+    let id: String
+}
+
+extension ProfileUseCase {
+    static var reduce: Reducer {
         return { state, effect in
             switch effect {
             case let .setLoading(value):
@@ -23,7 +27,7 @@ struct ProfileUseCase: UseCase {
         }
     }
 
-    var middleware: Middleware {
+    static var middleware: Middleware {
         var data: [String: Any]?
         return { state, action in
             switch action {
@@ -33,6 +37,4 @@ struct ProfileUseCase: UseCase {
             }
         }
     }
-
-    let id: String
 }

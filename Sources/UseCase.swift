@@ -6,22 +6,8 @@ public protocol UseCase {
     associatedtype Effect
 
     typealias Reducer = (inout State, Effect) -> Void
-    typealias Middleware = (State, Action) -> EffectTask<Effect>
+    typealias Middleware = (State, Action) -> EffectTask<Self>
 
-    var reducer: Reducer { get }
-    var middleware: Middleware { get }
-}
-
-public struct EmptyUseCase<U: UseCase>: UseCase {
-    public typealias State = U.State
-    public typealias Action = U.Action
-    public typealias Effect = U.Effect
-
-    public let reducer: Reducer
-    public let middleware: Middleware
-
-    public init() {
-        self.reducer = { _, _ in }
-        self.middleware = { _, _ in .none }
-    }
+    static var reduce: Reducer { get }
+    static var middleware: Middleware { get }
 }
