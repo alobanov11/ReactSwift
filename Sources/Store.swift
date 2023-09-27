@@ -26,7 +26,8 @@ public final class Store<U: UseCase>: ObservableObject {
 
 extension Store {
     public func send(_ action: U.Action) {
-        let task = self.middleware(self.state, action)
+        guard let useCase = self.useCase else { return }
+        let task = self.middleware(useCase, self.state, action)
         self.perform(task)
     }
 
@@ -63,11 +64,9 @@ private extension Store {
             break
 
         case let .publisher(id, publisher):
-            if let useCase = self.useCase {
-                self.cancellables[id] = publisher(useCase, { self.state })
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] in self?.perform($0) }
-            }
+            self.cancellables[id] = publisher({ self.state })
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.perform($0) }
 
         case let .effects(effects):
             for effect in effects {
@@ -76,14 +75,12 @@ private extension Store {
 
         case let .run(operation):
             Task {
-                guard let useCase = self.useCase else { return }
-                await self.perform(operation(useCase))
+                await self.perform(operation())
             }
 
         case let .runAndForget(operation):
             Task {
-                guard let useCase = self.useCase else { return }
-                await operation(useCase)
+                await operation()
             }
 
         case let .combine(tasks):
