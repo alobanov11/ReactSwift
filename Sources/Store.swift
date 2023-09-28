@@ -59,33 +59,25 @@ extension Store {
 
 private extension Store {
     func perform(_ task: EffectTask<U>) {
-        switch task {
-        case .none:
-            break
+        task.operations.forEach {
+            switch $0 {
+            case .none:
+                break
 
-        case let .publisher(id, publisher):
-            self.cancellables[id] = publisher({ self.state })
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.perform($0) }
+            case let .publisher(id, publisher):
+                self.cancellables[id] = publisher({ [weak self] in self?.state })?
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] in self?.perform($0) }
 
-        case let .effects(effects):
-            for effect in effects {
-                self.reduce(&self.state, effect)
-            }
+            case let .effects(effects):
+                for effect in effects {
+                    self.reduce(&self.state, effect)
+                }
 
-        case let .run(operation):
-            Task {
-                await self.perform(operation())
-            }
-
-        case let .runAndForget(operation):
-            Task {
-                await operation()
-            }
-
-        case let .combine(tasks):
-            for task in tasks {
-                self.perform(task)
+            case let .run(operation):
+                Task {
+                    await self.perform(operation())
+                }
             }
         }
     }
