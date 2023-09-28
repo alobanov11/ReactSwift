@@ -34,7 +34,7 @@ extension EffectTask {
 
     public static func publisher<T>(
         _ id: AnyHashable = UUID(),
-        createPublisher: @autoclosure @escaping () -> AnyPublisher<T, Never>,
+        createPublisher: @escaping () -> AnyPublisher<T, Never>,
         sink handler: @escaping (T, U.State) -> Self
     ) -> Self {
         Self(operations: [
