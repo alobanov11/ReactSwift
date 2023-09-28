@@ -7,11 +7,14 @@ public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
-    private let useCase: U?
+    
+    private let reduce: U.Reducer
+    private let middleware: U.Middleware
 
     public init(_ initialState: U.State, useCase: U? = nil) {
         self.state = initialState
-        self.useCase = useCase
+        self.reduce = U.reduce
+        self.middleware = useCase?.middleware ?? { _, _ in .none }
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
@@ -21,9 +24,7 @@ public final class Store<U: UseCase>: ObservableObject {
 
 extension Store {
     public func send(_ action: U.Action) {
-        guard let task = self.useCase?.middleware(self.state, action) else {
-            return
-        }
+        let task = self.middleware(self.state, action)
         self.perform(task)
     }
 
