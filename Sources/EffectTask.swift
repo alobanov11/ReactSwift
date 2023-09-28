@@ -23,7 +23,7 @@ extension EffectTask {
 
     public static func publisher(
         _ id: AnyHashable = UUID(),
-        createPublisher: @autoclosure @escaping () -> AnyPublisher<Self, Never>?
+        _ createPublisher: @autoclosure @escaping () -> AnyPublisher<Self, Never>?
     ) -> Self {
         Self(operations: [
             .publisher(id) { _ in
