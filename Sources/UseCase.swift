@@ -6,8 +6,8 @@ public protocol UseCase {
     associatedtype Effect
 
     typealias Reducer = (inout State, Effect) -> Void
-    typealias Middleware = (Self, State, Action) -> EffectTask<Self>
+    typealias Middleware = (State, Action) -> EffectTask<Self>
 
     static var reduce: Reducer { get }
-    static var middleware: Middleware { get }
+    var middleware: Middleware { get }
 }

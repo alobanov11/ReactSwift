@@ -6,17 +6,12 @@ import Combine
 public final class Store<U: UseCase>: ObservableObject {
     @Published public private(set) var state: U.State
 
-    private var useCase: U?
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
-
-    private let reduce: U.Reducer
-    private let middleware: U.Middleware
+    private let useCase: U?
 
     public init(_ initialState: U.State, useCase: U? = nil) {
         self.state = initialState
         self.useCase = useCase
-        self.reduce = U.reduce
-        self.middleware = U.middleware
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
@@ -26,8 +21,9 @@ public final class Store<U: UseCase>: ObservableObject {
 
 extension Store {
     public func send(_ action: U.Action) {
-        guard let useCase = self.useCase else { return }
-        let task = self.middleware(useCase, self.state, action)
+        guard let task = self.useCase?.middleware(self.state, action) else {
+            return
+        }
         self.perform(task)
     }
 
@@ -71,7 +67,7 @@ private extension Store {
 
             case let .effects(effects):
                 for effect in effects {
-                    self.reduce(&self.state, effect)
+                    U.reduce(&self.state, effect)
                 }
 
             case let .run(operation):
