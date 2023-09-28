@@ -83,4 +83,8 @@ extension EffectTask {
             }
         ])
     }
+
+    public static func merge(_ tasks: Self...) -> Self {
+        Self(operations: tasks.flatMap { $0.operations })
+    }
 }
