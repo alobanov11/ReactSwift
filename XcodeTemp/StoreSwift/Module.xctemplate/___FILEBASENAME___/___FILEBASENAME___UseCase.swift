@@ -30,7 +30,7 @@ extension ___VARIABLE_moduleName___UseCase {
         }
     }
 
-    static var middleware: Middleware {
+    var middleware: Middleware {
         return { state, action in
             switch action {
             case .viewAppeared:
