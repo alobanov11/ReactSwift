@@ -8,12 +8,10 @@ public final class Store<U: UseCase>: ObservableObject {
 
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
     
-    private let reduce: U.Reducer
     private let middleware: U.Middleware
 
     public init(_ initialState: U.State, useCase: U? = nil) {
         self.state = initialState
-        self.reduce = U.reduce
         self.middleware = useCase?.middleware ?? { _, _ in .none }
     }
 
@@ -72,10 +70,8 @@ private extension Store {
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] task in Task { await self?.perform(task) } }
 
-            case let .effects(effects):
-                for effect in effects {
-                    U.reduce(&self.state, effect)
-                }
+            case let .mutate(mutation):
+                mutation(&self.state)
 
             case let .run(operation):
                 await self.perform(operation())

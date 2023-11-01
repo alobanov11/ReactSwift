@@ -5,7 +5,7 @@ public struct EffectTask<U: UseCase> {
     enum Operation {
         case none
         case publisher(AnyHashable, (@escaping () -> U.State?) -> AnyPublisher<EffectTask<U>, Never>?)
-        case effects([U.Effect])
+        case mutate((inout U.State) -> Void)
         case run(@Sendable () async -> EffectTask<U>)
     }
 
@@ -46,12 +46,8 @@ extension EffectTask {
         ])
     }
 
-    public static func effect(_ effects: U.Effect...) -> Self {
-        Self(operations: [.effects(effects)])
-    }
-
-    public static func effects(_ effects: [U.Effect]) -> Self {
-        Self(operations: [.effects(effects)])
+    public static func mutate(_ operation: @escaping (inout U.State) -> Void) -> Self {
+        Self(operations: [.mutate(operation)])
     }
 
     public static func run(
