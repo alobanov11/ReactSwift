@@ -17,7 +17,7 @@ First you need to define a UseCase:
 
 ```swift
 struct ProfileUseCase: UseCase {
-    struct State: Equatable {
+    struct Props: Equatable {
         var isLoading = false
     }
 	
@@ -44,7 +44,7 @@ struct ProfileUseCase: UseCase {
             case let .viewAppeared(value):
                 return .merge(
                     .effect(.setLoading(true),
-                    .run { // perform asyncronous task and return EffectTask }
+                    .run { // perform asyncronous task and return Effect }
                 )
             }
         }
@@ -56,7 +56,7 @@ struct ProfileUseCase: UseCase {
 Then simple use it in view:
 
 ```swift
-@StateObject var store: Store<ProfileUseCase>
+@PropsObject var store: Store<ProfileUseCase>
 ...
 store.isLoading
 ...

@@ -4,18 +4,18 @@ import Combine
 @MainActor
 @dynamicMemberLookup
 public final class Store<U: UseCase>: ObservableObject {
-    @Published public private(set) var state: U.State
+    @Published public private(set) var state: U.Props
 
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
     
     private let middleware: U.Middleware
 
-    public init(_ initialState: U.State, useCase: U? = nil) {
-        self.state = initialState
+    public init(_ initialProps: U.Props, useCase: U? = nil) {
+        self.state = initialProps
         self.middleware = useCase?.middleware ?? { _, _ in .none }
     }
 
-    public subscript<Value>(dynamicMember keyPath: KeyPath<U.State, Value>) -> Value {
+    public subscript<Value>(dynamicMember keyPath: KeyPath<U.Props, Value>) -> Value {
         self.state[keyPath: keyPath]
     }
 }
@@ -33,7 +33,7 @@ extension Store {
     }
 
     public func update<T>(
-        _ keyPath: WritableKeyPath<U.State, T>,
+        _ keyPath: WritableKeyPath<U.Props, T>,
         newValue: T,
         by action: U.Action
     ) {
@@ -42,7 +42,7 @@ extension Store {
     }
 
     public func binding<T>(
-        _ keyPath: WritableKeyPath<U.State, T>,
+        _ keyPath: WritableKeyPath<U.Props, T>,
         by action: U.Action
     ) -> Binding<T> {
         Binding<T> {
@@ -59,7 +59,7 @@ extension Store {
 }
 
 private extension Store {
-    func perform(_ task: EffectTask<U>) async {
+    func perform(_ task: Effect<U>) async {
         for operation in task.operations {
             switch operation {
             case .none:

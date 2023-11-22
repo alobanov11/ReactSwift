@@ -11,6 +11,6 @@ struct ___VARIABLE_moduleName___View: View {
 
 #Preview {
     ___VARIABLE_moduleName___View(store: Store(
-        ___VARIABLE_moduleName___UseCase.State()
+        ___VARIABLE_moduleName___UseCase.Props()
     ))
 }

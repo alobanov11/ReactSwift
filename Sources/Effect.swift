@@ -1,12 +1,12 @@
 import Foundation
 import Combine
 
-public struct EffectTask<U: UseCase> {
+public struct Effect<U: UseCase> {
     enum Operation {
         case none
-        case publisher(AnyHashable, (@escaping () -> U.State?) -> AnyPublisher<EffectTask<U>, Never>?)
-        case mutate((inout U.State) -> Void)
-        case run(@Sendable () async -> EffectTask<U>)
+        case publisher(AnyHashable, (@escaping () -> U.Props?) -> AnyPublisher<Effect<U>, Never>?)
+        case mutate((inout U.Props) -> Void)
+        case run(@Sendable () async -> Effect<U>)
     }
 
     let operations: [Operation]
@@ -16,7 +16,7 @@ public struct EffectTask<U: UseCase> {
     }
 }
 
-extension EffectTask {
+extension Effect {
     public static var none: Self {
         Self(operations: [.none])
     }
@@ -35,7 +35,7 @@ extension EffectTask {
     public static func publisher<T>(
         _ id: AnyHashable = UUID(),
         createPublisher: @escaping () -> AnyPublisher<T, Never>,
-        sink handler: @escaping (T, U.State) -> Self
+        sink handler: @escaping (T, U.Props) -> Self
     ) -> Self {
         Self(operations: [
             .publisher(id) { state in
@@ -46,7 +46,7 @@ extension EffectTask {
         ])
     }
 
-    public static func mutate(_ operation: @escaping (inout U.State) -> Void) -> Self {
+    public static func mutate(_ operation: @escaping (inout U.Props) -> Void) -> Self {
         Self(operations: [.mutate(operation)])
     }
 

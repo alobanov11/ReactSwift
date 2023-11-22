@@ -2,7 +2,7 @@ import Foundation
 import StoreSwift
 
 struct ProfileUseCase: UseCase {
-    struct State: Equatable {
+    struct Props: Equatable {
         var isLoading = false
     }
 

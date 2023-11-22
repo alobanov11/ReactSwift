@@ -1,10 +1,10 @@
 import Foundation
 
 public protocol UseCase {
-    associatedtype State: Equatable
+    associatedtype Props: Equatable
     associatedtype Action
 
-    typealias Middleware = (State, Action) -> EffectTask<Self>
+    typealias Middleware = (Props, Action) -> Effect<Self>
 
     var middleware: Middleware { get }
 }

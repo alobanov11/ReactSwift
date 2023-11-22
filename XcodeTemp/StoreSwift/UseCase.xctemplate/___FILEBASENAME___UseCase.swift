@@ -2,7 +2,7 @@ import Foundation
 import StoreSwift
 
 struct ___VARIABLE_moduleName___UseCase: UseCase {
-    struct State: Equatable {
+    struct Props: Equatable {
         var isLoading = false
     }
 
