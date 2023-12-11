@@ -4,19 +4,19 @@ import Combine
 @MainActor
 @dynamicMemberLookup
 public final class Store<U: UseCase>: ObservableObject {
-    @Published public private(set) var state: U.Props
+    @Published public private(set) var props: U.Props
 
     private var cancellables: [AnyHashable: AnyCancellable] = [:]
     
     private let middleware: U.Middleware
 
     public init(_ initialProps: U.Props, useCase: U? = nil) {
-        self.state = initialProps
+        self.props = initialProps
         self.middleware = useCase?.middleware ?? { _, _ in .none }
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.Props, Value>) -> Value {
-        self.state[keyPath: keyPath]
+        self.props[keyPath: keyPath]
     }
 }
 
@@ -28,7 +28,7 @@ extension Store {
     }
 
     public func dispatch(_ action: U.Action) async {
-        let task = self.middleware(self.state, action)
+        let task = self.middleware(self.props, action)
         await self.perform(task)
     }
 
@@ -37,7 +37,7 @@ extension Store {
         newValue: T,
         by action: U.Action
     ) {
-        self.state[keyPath: keyPath] = newValue
+        self.props[keyPath: keyPath] = newValue
         self.send(action)
     }
 
@@ -46,9 +46,9 @@ extension Store {
         by action: U.Action
     ) -> Binding<T> {
         Binding<T> {
-            return self.state[keyPath: keyPath]
+            return self.props[keyPath: keyPath]
         } set: { newValue in
-            self.state[keyPath: keyPath] = newValue
+            self.props[keyPath: keyPath] = newValue
             return self.send(action)
         }
     }
@@ -66,12 +66,12 @@ private extension Store {
                 break
 
             case let .publisher(id, publisher):
-                self.cancellables[id] = publisher({ [weak self] in self?.state })?
+                self.cancellables[id] = publisher({ [weak self] in self?.props })?
                     .receive(on: DispatchQueue.main)
                     .sink { [weak self] task in Task { await self?.perform(task) } }
 
             case let .mutate(mutation):
-                mutation(&self.state)
+                mutation(&self.props)
 
             case let .run(operation):
                 await self.perform(operation())
