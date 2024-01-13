@@ -57,7 +57,7 @@ private extension Store {
         for operation in task.operations {
             switch operation {
             case .none:
-                break
+                continue
 
             case let .publisher(id, publisher):
                 self.cancellables[id] = publisher({ [weak self] in self?.props })?
