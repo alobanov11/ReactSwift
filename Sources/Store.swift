@@ -22,14 +22,8 @@ public final class Store<U: UseCase>: ObservableObject {
 
 extension Store {
     public func send(_ action: U.Action) {
-        Task {
-            await self.dispatch(action)
-        }
-    }
-
-    public func dispatch(_ action: U.Action) async {
         let task = self.middleware(self.props, action)
-        await self.perform(task)
+        self.perform(task)
     }
 
     public func update<T>(
@@ -59,7 +53,7 @@ extension Store {
 }
 
 private extension Store {
-    func perform(_ task: Effect<U>) async {
+    func perform(_ task: Effect<U>) {
         for operation in task.operations {
             switch operation {
             case .none:
@@ -68,13 +62,16 @@ private extension Store {
             case let .publisher(id, publisher):
                 self.cancellables[id] = publisher({ [weak self] in self?.props })?
                     .receive(on: DispatchQueue.main)
-                    .sink { [weak self] task in Task { await self?.perform(task) } }
+                    .sink { [weak self] task in self?.perform(task) }
 
             case let .mutate(mutation):
                 mutation(&self.props)
 
             case let .run(operation):
-                await self.perform(operation())
+                Task {
+                    let task = await operation()
+                    self.perform(task)
+                }
             }
         }
     }

@@ -22,7 +22,7 @@ struct ___VARIABLE_moduleName___UseCase: UseCase {
 extension ___VARIABLE_moduleName___UseCase {
     
     var middleware: Middleware {
-        return { state, action in
+        return { props, action in
             switch action {
             case .viewAppeared:
                 return .mutate {
