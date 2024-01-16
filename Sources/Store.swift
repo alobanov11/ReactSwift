@@ -26,6 +26,11 @@ extension Store {
         self.perform(task)
     }
 
+    public func dispatch(_ action: U.Action) async {
+        let task = self.middleware(self.props, action)
+        await self.asyncPerform(task)
+    }
+
     public func update<T>(
         _ keyPath: WritableKeyPath<U.Props, T>,
         newValue: T,
@@ -72,6 +77,27 @@ private extension Store {
                     let task = await operation()
                     self.perform(task)
                 }
+            }
+        }
+    }
+
+    func asyncPerform(_ task: Effect<U>) async {
+        for operation in task.operations {
+            switch operation {
+            case .none:
+                continue
+
+            case let .publisher(id, publisher):
+                self.cancellables[id] = publisher({ [weak self] in self?.props })?
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] task in self?.perform(task) }
+
+            case let .mutate(mutation):
+                mutation(&self.props)
+
+            case let .run(operation):
+                let task = await operation()
+                await asyncPerform(task)
             }
         }
     }
