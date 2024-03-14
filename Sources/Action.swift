@@ -28,7 +28,7 @@ public struct Action<U: UseCase> {
 
     let make: (Context) async -> Void
 
-    public init(make: @escaping (Context) -> Void) {
+    public init(make: @escaping (Context) async -> Void) {
         self.make = make
     }
 }
