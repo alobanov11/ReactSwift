@@ -17,37 +17,32 @@ First you need to define a UseCase:
 
 ```swift
 struct ProfileUseCase: UseCase {
+
     struct Props: Equatable {
+
         var isLoading = false
-    }
-	
-    enum Action {
-        case viewAppeared
+        var name: String?
+        var error: String?
     }
     
-    enum Effect {
-        case setLoading(Bool)
-    }
-	
-    var reducer: Reducer {
-        return { state, effect in
-            switch effect {
-            case let .setLoading(value):
-                state.isLoading = value
-            }
+    let profile: () async throws -> Profile
+}
+```
+
+Then you need to define actions that view sends by calling `store.send(.viewAppeared)`:
+```swift
+extension Action where U == ProfileUseCase {
+
+    static let viewAppeared = Self {
+        await $0.setProps(\.isLoading, true)
+        do {
+            let profile = try await $0.useCase.profile()
+            await $0.setProps(\.name, profile.name)
         }
-    }
-    
-    var middleware: Middleware {
-        return { state, action in
-            switch action {
-            case let .viewAppeared(value):
-                return .merge(
-                    .effect(.setLoading(true),
-                    .run { // perform asyncronous task and return Effect }
-                )
-            }
+        catch {
+            await $0.setProps(\.error, error.localizedDescription)
         }
+        await $0.setProps(\.isLoading, false)
     }
 }
 ```
@@ -56,7 +51,7 @@ struct ProfileUseCase: UseCase {
 Then simple use it in view:
 
 ```swift
-@PropsObject var store: Store<ProfileUseCase>
+@StateObject var store: Store<ProfileUseCase>
 ...
 store.isLoading
 ...

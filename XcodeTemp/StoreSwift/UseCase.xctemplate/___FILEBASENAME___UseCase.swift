@@ -2,15 +2,10 @@ import Foundation
 import StoreSwift
 
 struct ___VARIABLE_moduleName___UseCase: UseCase {
-    
-    struct Props: Equatable {
-        
-        var isLoading = false
-    }
 
-    enum Action {
-        
-        case viewAppeared
+    struct Props: Equatable {
+
+        var isLoading = false
     }
 
     struct Router {
@@ -19,16 +14,9 @@ struct ___VARIABLE_moduleName___UseCase: UseCase {
     let router: Router
 }
 
-extension ___VARIABLE_moduleName___UseCase {
-    
-    var middleware: Middleware {
-        return { props, action in
-            switch action {
-            case .viewAppeared:
-                return .mutate {
-                    $0.isLoading = true
-                }
-            }
-        }
+extension Action where U == ___VARIABLE_moduleName___UseCase {
+
+    static let viewAppeared = Self {
+        await $0.setProps(\.isLoading, true)
     }
 }

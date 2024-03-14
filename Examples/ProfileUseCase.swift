@@ -2,39 +2,21 @@ import Foundation
 import StoreSwift
 
 struct ProfileUseCase: UseCase {
+
     struct Props: Equatable {
+
         var isLoading = false
     }
 
-    enum Action {
-        case viewAppeared
+    struct Router {
     }
 
-    enum Effect {
-        case setLoading(Bool)
-    }
-
-    let id: String
+    let router: Router
 }
 
-extension ProfileUseCase {
-    static var reduce: Reducer {
-        return { state, effect in
-            switch effect {
-            case let .setLoading(value):
-                state.isLoading = value
-            }
-        }
-    }
+extension Action where U == ProfileUseCase {
 
-    static var middleware: Middleware {
-        var data: [String: Any]?
-        return { state, action in
-            switch action {
-            case .viewAppeared:
-                data = [:]
-                return .effect(.setLoading(true))
-            }
-        }
+    static let viewAppeared = Self {
+        await $0.setProps(\.isLoading, true)
     }
 }

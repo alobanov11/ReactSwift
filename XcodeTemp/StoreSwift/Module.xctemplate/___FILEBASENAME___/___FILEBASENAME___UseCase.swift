@@ -8,27 +8,15 @@ struct ___VARIABLE_moduleName___UseCase: UseCase {
         var isLoading = false
     }
 
-    enum Action {
-        
-        case viewAppeared
-    }
-
     struct Router {
     }
 
     let router: Router
 }
 
-extension ___VARIABLE_moduleName___UseCase {
-    
-    var middleware: Middleware {
-        return { props, action in
-            switch action {
-            case .viewAppeared:
-                return .mutate {
-                    $0.isLoading = true
-                }
-            }
-        }
+extension Action where U == ___VARIABLE_moduleName___UseCase {
+
+    static let viewAppeared = Self {
+        await $0.setProps(\.isLoading, true)
     }
 }

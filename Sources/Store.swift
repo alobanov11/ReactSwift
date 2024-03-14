@@ -4,15 +4,22 @@ import Combine
 @MainActor
 @dynamicMemberLookup
 public final class Store<U: UseCase>: ObservableObject {
+
     @Published public private(set) var props: U.Props
 
-    private var cancellables: [AnyHashable: AnyCancellable] = [:]
-    
-    private let middleware: U.Middleware
+    private lazy var actionContext = useCase.map {
+        Action<U>.Context(
+            get: { await MainActor.run { self.props } },
+            set: { newValue in await MainActor.run { self.props = newValue } },
+            useCase: $0
+        )
+    }
+
+    private let useCase: U?
 
     public init(_ initialProps: U.Props, useCase: U? = nil) {
         self.props = initialProps
-        self.middleware = useCase?.middleware ?? { _, _ in .none }
+        self.useCase = useCase
     }
 
     public subscript<Value>(dynamicMember keyPath: KeyPath<U.Props, Value>) -> Value {
@@ -20,85 +27,42 @@ public final class Store<U: UseCase>: ObservableObject {
     }
 }
 
-extension Store {
-    public func send(_ action: U.Action) {
-        let task = self.middleware(self.props, action)
-        self.perform(task)
+public extension Store {
+
+    func send(_ action: Action<U>) {
+        guard let actionContext else { return }
+        Task {
+            await action.make(actionContext)
+        }
     }
 
-    public func dispatch(_ action: U.Action) async {
-        let task = self.middleware(self.props, action)
-        await self.asyncPerform(task)
+    func dispatch(_ action: Action<U>) async {
+        guard let actionContext else { return }
+        await action.make(actionContext)
     }
 
-    public func update<T>(
+    func update<T>(
         _ keyPath: WritableKeyPath<U.Props, T>,
         newValue: T,
-        by action: U.Action
+        by action: Action<U>
     ) {
-        self.props[keyPath: keyPath] = newValue
-        self.send(action)
+        props[keyPath: keyPath] = newValue
+        send(action)
     }
 
-    public func binding<T>(
+    func binding<T>(
         _ keyPath: WritableKeyPath<U.Props, T>,
-        by action: U.Action
+        by action: Action<U>
     ) -> Binding<T> {
         Binding<T> {
-            return self.props[keyPath: keyPath]
+            self.props[keyPath: keyPath]
         } set: { newValue in
             self.props[keyPath: keyPath] = newValue
             return self.send(action)
         }
     }
 
-    public func action(_ action: U.Action) -> () -> Void {
+    func action(_ action: Action<U>) -> () -> Void {
         { self.send(action) }
-    }
-}
-
-private extension Store {
-    func perform(_ task: Effect<U>) {
-        for operation in task.operations {
-            switch operation {
-            case .none:
-                continue
-
-            case let .publisher(id, publisher):
-                self.cancellables[id] = publisher({ [weak self] in self?.props })?
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] task in self?.perform(task) }
-
-            case let .mutate(mutation):
-                mutation(&self.props)
-
-            case let .run(operation):
-                Task {
-                    let task = await operation()
-                    self.perform(task)
-                }
-            }
-        }
-    }
-
-    func asyncPerform(_ task: Effect<U>) async {
-        for operation in task.operations {
-            switch operation {
-            case .none:
-                continue
-
-            case let .publisher(id, publisher):
-                self.cancellables[id] = publisher({ [weak self] in self?.props })?
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] task in self?.perform(task) }
-
-            case let .mutate(mutation):
-                mutation(&self.props)
-
-            case let .run(operation):
-                let task = await operation()
-                await asyncPerform(task)
-            }
-        }
     }
 }
