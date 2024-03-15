@@ -7,14 +7,6 @@ public final class Store<U: UseCase>: ObservableObject {
 
     @Published public private(set) var props: U.Props
 
-    private lazy var actionContext = useCase.map {
-        Action<U>.Context(
-            get: { await MainActor.run { self.props } },
-            set: { newValue in await MainActor.run { self.props = newValue } },
-            useCase: $0
-        )
-    }
-
     private let useCase: U?
 
     public init(_ initialProps: U.Props, useCase: U? = nil) {
@@ -30,14 +22,26 @@ public final class Store<U: UseCase>: ObservableObject {
 public extension Store {
 
     func send(_ action: Action<U>) {
-        guard let actionContext else { return }
+        guard let actionContext = useCase.map({
+            Action<U>.Context(
+                get: { await MainActor.run { self.props } },
+                set: { newValue in await MainActor.run { self.props = newValue } },
+                useCase: $0
+            )
+        }) else { return }
         Task {
             await action.make(actionContext)
         }
     }
 
     func dispatch(_ action: Action<U>) async {
-        guard let actionContext else { return }
+        guard let actionContext = useCase.map({
+            Action<U>.Context(
+                get: { await MainActor.run { self.props } },
+                set: { newValue in await MainActor.run { self.props = newValue } },
+                useCase: $0
+            )
+        }) else { return }
         await action.make(actionContext)
     }
 
