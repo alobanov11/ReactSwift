@@ -16,7 +16,9 @@ struct ProfileUseCase: UseCase {
 
 extension Action where U == ProfileUseCase {
 
-    static let viewAppeared = Self {
-        await $0.setProps(\.isLoading, true)
+    static let viewAppeared = Self { props, useCase in
+        await props {
+            $0.isLoading = true
+        }
     }
 }

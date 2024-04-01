@@ -16,7 +16,9 @@ struct ___VARIABLE_moduleName___UseCase: UseCase {
 
 extension Action where U == ___VARIABLE_moduleName___UseCase {
 
-    static let viewAppeared = Self {
-        await $0.setProps(\.isLoading, true)
+    static let viewAppeared = Self { props, useCase in
+        await props {
+            $0.isLoading = true
+        }
     }
 }
