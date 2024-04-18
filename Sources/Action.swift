@@ -11,6 +11,10 @@ public struct Action<U: UseCase> {
         public let useCase: U
 
         public func callAsFunction(_ newProps: (inout U.Props) -> Void) async {
+            await set(newProps)
+        }
+
+        public func set(_ newProps: (inout U.Props) -> Void) async {
             var props = await get()
             newProps(&props)
             await set(props)
