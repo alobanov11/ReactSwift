@@ -22,27 +22,19 @@ public final class Store<U: UseCase>: ObservableObject {
 public extension Store {
 
     func send(_ action: Action<U>) {
-        guard let useCase else { return }
         Task {
-            await action.make(
-                Action<U>.Props(
-                    get: { await MainActor.run { self.props } },
-                    set: { newValue in await MainActor.run { self.props = newValue } }
-                ),
-                useCase
-            )
+            await dispatch(action)
         }
     }
 
     func dispatch(_ action: Action<U>) async {
         guard let useCase else { return }
-        await action.make(
-            Action<U>.Props(
-                get: { await MainActor.run { self.props } },
-                set: { newValue in await MainActor.run { self.props = newValue } }
-            ),
-            useCase
+        let context = Action<U>.Context(
+            get: { await MainActor.run { self.props } },
+            set: { newValue in await MainActor.run { self.props = newValue } },
+            useCase: useCase
         )
+        await action.make(context)
     }
 
     func update<T>(

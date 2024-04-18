@@ -7,17 +7,12 @@ struct ___VARIABLE_moduleName___UseCase: UseCase {
 
         var isLoading = false
     }
-
-    struct Router {
-    }
-
-    let router: Router
 }
 
 extension Action where U == ___VARIABLE_moduleName___UseCase {
 
-    static let viewAppeared = Self { props, useCase in
-        await props {
+    static let viewAppeared = Self { context in
+        await context {
             $0.isLoading = true
         }
     }
