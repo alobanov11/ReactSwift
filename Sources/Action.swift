@@ -29,7 +29,7 @@ public struct Action<U: UseCase> {
         }
     }
 
-    let make: (Context) async -> Void
+    public let make: (Context) async -> Void
 
     public init(make: @escaping (Context) async -> Void) {
         self.make = make
