@@ -34,7 +34,7 @@ public extension Store {
             set: { newValue in await MainActor.run { self.props = newValue } },
             useCase: useCase
         )
-        await action.make(context)
+        await action(context)
     }
 
     func update<T>(

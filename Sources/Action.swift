@@ -29,7 +29,7 @@ public struct Action<U: UseCase> {
         }
     }
 
-    public let make: (Context) async -> Void
+    let make: (Context) async -> Void
 
     public init(make: @escaping (Context) async -> Void) {
         self.make = make
@@ -37,5 +37,9 @@ public struct Action<U: UseCase> {
 
     public init(make: @escaping () async -> Void) {
         self.make = { _ in await make() }
+    }
+
+    public func callAsFunction(_ context: Context) async {
+        await make(context)
     }
 }
