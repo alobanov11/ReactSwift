@@ -6,15 +6,17 @@ public struct Action<U: UseCase> {
     @dynamicMemberLookup
     public struct Context {
 
-        public let get: () async -> U.Props
-        public let set: (U.Props) async -> Void
-        public let useCase: U
-
-        public func callAsFunction(_ newProps: (inout U.Props) -> Void) async {
-            await set(newProps)
+        public var props: U.Props {
+            get async {
+                await get()
+            }
         }
 
-        public func set(_ newProps: (inout U.Props) -> Void) async {
+        let get: () async -> U.Props
+        let set: (U.Props) async -> Void
+        let useCase: U
+
+        public func callAsFunction(_ newProps: (inout U.Props) -> Void) async {
             var props = await get()
             newProps(&props)
             await set(props)
@@ -22,10 +24,6 @@ public struct Action<U: UseCase> {
 
         public subscript<Value>(dynamicMember keyPath: KeyPath<U, Value>) -> Value {
             useCase[keyPath: keyPath]
-        }
-
-        public subscript<Value>(dynamicMember keyPath: KeyPath<U.Props, Value>) -> Value {
-            get async { await get()[keyPath: keyPath] }
         }
     }
 
